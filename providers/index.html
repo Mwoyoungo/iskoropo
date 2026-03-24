@@ -524,13 +524,13 @@
 const service  = sessionStorage.getItem('iskropo_service')  || 'Laundry';
 const when     = sessionStorage.getItem('iskropo_when')     || 'Tomorrow';
 const budget   = sessionStorage.getItem('iskropo_budget')   || 'R100';
-const location = sessionStorage.getItem('iskropo_location') || 'Sunnyside';
+const userLocation = sessionStorage.getItem('iskropo_location') || 'Sunnyside';
 
 // Populate summary
 document.getElementById('sum-service').textContent  = service;
 document.getElementById('sum-when').textContent     = when;
 document.getElementById('sum-budget').textContent   = budget;
-document.getElementById('sum-location').textContent = location;
+document.getElementById('sum-location').textContent = userLocation;
 
 // ── Provider data ─────────────────────────────────────────────
 const providers = [
