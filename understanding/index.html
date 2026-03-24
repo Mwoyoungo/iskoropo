@@ -13,7 +13,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- Phosphor Icons -->
-<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/dist/index.js"></script>
 
 <!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -57,7 +57,7 @@
     margin: 0; padding: 0;
     height: 100%; overflow: hidden;
     font-family: 'Manrope', sans-serif;
-    background: #181C27;
+    background: #F9F7F5;
   }
 
   /* ── Leaflet overrides ── */
@@ -661,7 +661,7 @@ let autoAdvanceTimer = null;
 function runSequence() {
   // 0ms: sheet slides up
   requestAnimationFrame(() => {
-    setTimeout(() => document.getElementById('sheet').classList.add('visible'), 30);
+    document.getElementById('sheet').classList.add('visible');
   });
 
   // 400ms: show query box + typewriter
