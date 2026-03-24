@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Iskropo</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Leaflet (OpenStreetMap) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            orange: '#F77622',
+            deep:   '#9D4300',
+            fire:   '#FE7B27',
+            dark:   '#181C27',
+            muted:  '#8A6A55',
+          },
+          surface: {
+            base:   '#F9F7F5',
+            low:    '#F2EDE8',
+            mid:    '#E8E0D8',
+            high:   '#DDD4CA',
+          }
+        },
+        fontFamily: {
+          display: ['"Plus Jakarta Sans"', 'sans-serif'],
+          body:    ['Manrope', 'sans-serif'],
+        },
+        borderRadius: {
+          '4xl': '2rem',
+          '5xl': '2.5rem',
+          '6xl': '3rem',
+        },
+        keyframes: {
+          'pulse-ring': {
+            '0%':   { transform: 'scale(1)',   opacity: '0.6' },
+            '100%': { transform: 'scale(2.8)', opacity: '0' },
+          },
+          'float-up': {
+            '0%':   { transform: 'translateY(100%)', opacity: '0' },
+            '100%': { transform: 'translateY(0)',     opacity: '1' },
+          },
+          'slide-up': {
+            '0%':   { transform: 'translateY(40px)', opacity: '0' },
+            '100%': { transform: 'translateY(0)',    opacity: '1' },
+          },
+          'shimmer': {
+            '0%':   { backgroundPosition: '-200% 0' },
+            '100%': { backgroundPosition:  '200% 0' },
+          },
+          'splash-out': {
+            '0%':   { transform: 'scale(1)',    opacity: '1' },
+            '60%':  { transform: 'scale(1.08)', opacity: '1' },
+            '100%': { transform: 'scale(20)',   opacity: '0' },
+          },
+          'splash-fade': {
+            '0%':   { opacity: '1' },
+            '70%':  { opacity: '1' },
+            '100%': { opacity: '0' },
+          },
+          'logo-pop': {
+            '0%':   { transform: 'scale(0.7)', opacity: '0' },
+            '60%':  { transform: 'scale(1.1)', opacity: '1' },
+            '100%': { transform: 'scale(1)',   opacity: '1' },
+          },
+          'dot-bounce': {
+            '0%, 100%': { transform: 'translateY(0)' },
+            '50%':      { transform: 'translateY(-5px)' },
+          },
+        },
+        animation: {
+          'pulse-ring':  'pulse-ring 2s ease-out infinite',
+          'float-up':    'float-up 0.5s cubic-bezier(0.16,1,0.3,1) forwards',
+          'slide-up':    'slide-up 0.4s ease-out forwards',
+          'shimmer':     'shimmer 2.5s linear infinite',
+          'splash-out':  'splash-out 0.9s cubic-bezier(0.4,0,0.2,1) forwards',
+          'splash-fade': 'splash-fade 0.9s ease forwards',
+          'logo-pop':    'logo-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards',
+          'dot-bounce':  'dot-bounce 1.2s ease-in-out infinite',
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: #F9F7F5;
+    overflow: hidden;
+    height: 100dvh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ── Map ── */
+  #map {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    filter: saturate(0.25) brightness(1.05) contrast(0.9);
+  }
+
+  /* tint overlay so map reads as floor not noise */
+  #map::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(249,247,245,0.18) 0%,
+      rgba(249,247,245,0.0) 40%,
+      rgba(249,247,245,0.55) 100%
+    );
+    pointer-events: none;
+    z-index: 500;
+  }
+
+  .leaflet-control-zoom,
+  .leaflet-control-attribution { display: none !important; }
+
+  /* custom map marker */
+  .provider-marker {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #F77622;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 12px rgba(247,118,34,0.45);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .provider-marker:hover { transform: scale(1.15); }
+  .provider-marker.premium {
+    background: linear-gradient(135deg, #F77622, #FE7B27);
+  }
+
+  /* ── Splash ── */
+  #splash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, #181C27 0%, #2D1A0E 45%, #9D4300 100%);
+    overflow: hidden;
+  }
+
+  #splash .grain {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    background-size: 180px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  #splash .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  .splash-expanding {
+    animation: splash-out 0.9s cubic-bezier(0.4,0,0.2,1) forwards !important;
+  }
+  .splash-fading {
+    animation: splash-fade 0.9s ease forwards !important;
+  }
+
+  /* ── Glassmorphic surfaces ── */
+  .glass {
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .glass-dark {
+    background: rgba(24,28,39,0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ── Bottom sheet ── */
+  #bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    z-index: 100;
+    max-width: 430px;
+    margin: 0 auto;
+    transform: translateY(0);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  /* ── Scrollbar hide ── */
+  .no-scroll::-webkit-scrollbar { display: none; }
+  .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── Provider chip pulse ring ── */
+  .pulse-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pulse-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #F77622;
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  /* ── Input focus ── */
+  .ai-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #181C27;
+    caret-color: #F77622;
+  }
+  .ai-input::placeholder { color: #B8A99A; font-weight: 500; }
+
+  /* ── Intent chip active ── */
+  .intent-chip { transition: all 0.18s ease; }
+  .intent-chip:active { transform: scale(0.93); }
+  .intent-chip.active {
+    background: linear-gradient(135deg, #9D4300, #F77622);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(247,118,34,0.35);
+  }
+
+  /* ── Dot loading ── */
+  .dot-1 { animation: dot-bounce 1.2s ease-in-out 0s    infinite; }
+  .dot-2 { animation: dot-bounce 1.2s ease-in-out 0.2s  infinite; }
+  .dot-3 { animation: dot-bounce 1.2s ease-in-out 0.4s  infinite; }
+
+  /* ── Nav bar ── */
+  .nav-item { transition: all 0.2s ease; }
+  .nav-item:active { transform: scale(0.88); }
+
+  /* ── Floating action ── */
+  .fab { transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .fab:active { transform: scale(0.92); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ SPLASH SCREEN -->
+<div id="splash">
+  <!-- grain texture -->
+  <div class="grain"></div>
+
+  <!-- glow orbs -->
+  <div class="glow-orb w-72 h-72 bg-orange-500/30 top-1/4 -left-20"></div>
+  <div class="glow-orb w-96 h-96 bg-orange-900/40 -bottom-20 right-0"></div>
+  <div class="glow-orb w-48 h-48 bg-amber-400/20 top-10 right-10"></div>
+
+  <!-- content -->
+  <div id="splash-content" class="relative z-10 flex flex-col items-center gap-6 px-8 text-center">
+
+    <!-- logo mark -->
+    <div id="splash-logo" style="opacity:0; animation: logo-pop 0.6s 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;">
+      <div class="w-20 h-20 rounded-3xl flex items-center justify-center mb-2 mx-auto"
+           style="background: linear-gradient(135deg, #F77622 0%, #FE7B27 60%, #FFB347 100%); box-shadow: 0 8px 32px rgba(247,118,34,0.5);">
+        <i class="ph-bold ph-lightning text-white" style="font-size: 2.4rem;"></i>
+      </div>
+    </div>
+
+    <!-- wordmark -->
+    <div style="opacity:0; animation: slide-up 0.5s 0.55s ease-out forwards;">
+      <h1 class="font-display font-black text-white tracking-tight" style="font-size: 3.2rem; line-height: 1; letter-spacing: -0.03em;">
+        Iskropo
+      </h1>
+      <p class="text-white/55 font-body font-medium mt-2 text-sm tracking-wide">
+        Empowering Hustle. Building Futures.
+      </p>
+    </div>
+
+    <!-- loading dots -->
+    <div style="opacity:0; animation: slide-up 0.5s 0.85s ease-out forwards;">
+      <div class="flex gap-2 mt-4">
+        <div class="dot-1 w-2 h-2 rounded-full bg-orange-400/80"></div>
+        <div class="dot-2 w-2 h-2 rounded-full bg-orange-400/80"></div>
+        <div class="dot-3 w-2 h-2 rounded-full bg-orange-400/80"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tap to continue hint -->
+  <p id="splash-hint" class="absolute bottom-12 text-white/30 font-body text-xs tracking-widest uppercase"
+     style="opacity:0; animation: slide-up 0.5s 1.4s ease-out forwards;">
+    tap anywhere to continue
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════ MAP -->
+<div id="map"></div>
+
+<!-- ═══════════════════════════════════════════ TOP BAR -->
+<header class="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-3 max-w-[430px] mx-auto">
+  <div class="flex justify-between items-center">
+
+    <!-- location pill -->
+    <button id="location-pill"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-full glass shadow-sm active:scale-95 transition-transform"
+      onclick="document.getElementById('location-modal').classList.remove('hidden')">
+      <i class="ph-fill ph-map-pin text-brand-orange" style="font-size:1rem;"></i>
+      <span class="font-display font-bold text-xs text-brand-dark tracking-tight">Sunnyside, Pretoria</span>
+      <i class="ph ph-caret-down text-brand-muted" style="font-size:0.75rem;"></i>
+    </button>
+
+    <!-- right cluster -->
+    <div class="flex items-center gap-2">
+      <!-- online providers badge -->
+      <div class="flex items-center gap-1.5 px-3 py-2 rounded-full glass shadow-sm">
+        <div class="pulse-container w-2 h-2">
+          <div class="pulse-ring"></div>
+          <div class="w-2 h-2 rounded-full bg-green-500 relative z-10"></div>
+        </div>
+        <span class="font-body font-semibold text-xs text-brand-dark">14 online</span>
+      </div>
+
+      <!-- profile avatar -->
+      <button class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md active:scale-90 transition-transform"
+              onclick="alert('Profile coming soon!')">
+        <div class="w-full h-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center">
+          <i class="ph-bold ph-user text-white" style="font-size:1.1rem;"></i>
+        </div>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ MAP FABs (right side) -->
+<div class="fixed right-4 z-40 flex flex-col gap-3" style="top: 50%; transform: translateY(-50%); max-width: 430px;">
+  <button class="fab w-11 h-11 glass rounded-2xl shadow-md flex items-center justify-center active:scale-90"
+          onclick="map.zoomIn()">
+    <i class="ph-bold ph-plus text-brand-dark" style="font-size:1.1rem;"></i>
+  </button>
+  <button class="fab w-11 h-11 glass rounded-2xl shadow-md flex items-center justify-center active:scale-90"
+          onclick="map.zoomOut()">
+    <i class="ph-bold ph-minus text-brand-dark" style="font-size:1.1rem;"></i>
+  </button>
+  <button class="fab w-11 h-11 glass rounded-2xl shadow-md flex items-center justify-center active:scale-90"
+          onclick="centerMap()">
+    <i class="ph-bold ph-crosshair-simple text-brand-orange" style="font-size:1.1rem;"></i>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════ BOTTOM SHEET -->
+<div id="bottom-sheet">
+  <div class="glass rounded-t-[2.5rem] shadow-[0_-16px_60px_rgba(0,0,0,0.07)] px-5 pt-4 pb-2">
+
+    <!-- drag handle -->
+    <div class="w-10 h-1 bg-surface-high rounded-full mx-auto mb-5 opacity-60"></div>
+
+    <!-- headline block -->
+    <div class="mb-5 px-1">
+      <p class="font-body text-brand-muted font-medium text-xs tracking-widest uppercase mb-1">Hey there 👋</p>
+      <h1 class="font-display font-black text-brand-dark leading-none tracking-tight"
+          style="font-size: 2.4rem; letter-spacing: -0.03em; line-height: 1.05;">
+        Just ask.
+      </h1>
+      <p class="font-body text-brand-muted font-medium text-sm mt-1.5">
+        Describe what you need — I'll handle the rest.
+      </p>
+    </div>
+
+    <!-- AI input box -->
+    <div id="input-box"
+         class="flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-4 cursor-text transition-all duration-200"
+         style="background: #F2EDE8; box-shadow: inset 0 0 0 1.5px transparent;"
+         onclick="document.getElementById('ai-search').focus()">
+
+      <div class="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+           style="background: linear-gradient(135deg, #9D4300, #F77622);">
+        <i class="ph-bold ph-sparkle text-white" style="font-size:1rem;"></i>
+      </div>
+
+      <input id="ai-search"
+             class="ai-input flex-1"
+             placeholder="Laundry tomorrow under R100…"
+             type="text"
+             oninput="handleInput(this.value)"
+             onkeydown="if(event.key==='Enter') submitRequest()"
+             onfocus="inputFocus(true)"
+             onblur="inputFocus(false)"/>
+
+      <button id="submit-btn"
+              class="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center opacity-0 transition-all duration-200 active:scale-90"
+              style="background: linear-gradient(135deg, #9D4300, #F77622);"
+              onclick="submitRequest()">
+        <i class="ph-bold ph-arrow-up text-white" style="font-size:1rem;"></i>
+      </button>
+    </div>
+
+    <!-- intent chips -->
+    <div class="flex gap-2 overflow-x-auto no-scroll pb-1 mb-5 px-0.5">
+      <button class="intent-chip flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold text-xs"
+              style="background:#F2EDE8; color:#584237;"
+              data-intent="Laundry near me now"
+              onclick="selectChip(this)">
+        <i class="ph-bold ph-t-shirt-folded" style="font-size:0.9rem;"></i>
+        Laundry
+      </button>
+      <button class="intent-chip flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold text-xs"
+              style="background:#F2EDE8; color:#584237;"
+              data-intent="Haircut at home today"
+              onclick="selectChip(this)">
+        <i class="ph-bold ph-scissors" style="font-size:0.9rem;"></i>
+        Haircut
+      </button>
+      <button class="intent-chip flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold text-xs"
+              style="background:#F2EDE8; color:#584237;"
+              data-intent="Home cleaning today"
+              onclick="selectChip(this)">
+        <i class="ph-bold ph-broom" style="font-size:0.9rem;"></i>
+        Cleaning
+      </button>
+      <button class="intent-chip flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold text-xs"
+              style="background:#F2EDE8; color:#584237;"
+              data-intent="I need help urgently right now"
+              onclick="selectChip(this)">
+        <i class="ph-bold ph-warning-circle" style="font-size:0.9rem;"></i>
+        Help now
+      </button>
+      <button class="intent-chip flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold text-xs"
+              style="background:#F2EDE8; color:#584237;"
+              data-intent="Something under R100 nearby"
+              onclick="selectChip(this)">
+        <i class="ph-bold ph-currency-zar" style="font-size:0.9rem;"></i>
+        Under R100
+      </button>
+      <button class="intent-chip flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold text-xs"
+              style="background:#F2EDE8; color:#584237;"
+              data-intent="Fix something broken at home"
+              onclick="selectChip(this)">
+        <i class="ph-bold ph-wrench" style="font-size:0.9rem;"></i>
+        Handyman
+      </button>
+    </div>
+
+    <!-- bottom nav -->
+    <nav class="flex justify-around items-center py-3 border-t"
+         style="border-color: rgba(0,0,0,0.05);">
+
+      <button class="nav-item flex flex-col items-center gap-1 px-4 py-1 rounded-2xl"
+              style="background: rgba(247,118,34,0.1);">
+        <i class="ph-fill ph-map text-brand-orange" style="font-size:1.3rem;"></i>
+        <span class="font-body font-semibold text-brand-orange" style="font-size:0.65rem;">Explore</span>
+      </button>
+
+      <button class="nav-item flex flex-col items-center gap-1 px-4 py-1 rounded-2xl active:bg-surface-low"
+              onclick="alert('Requests coming soon!')">
+        <i class="ph ph-receipt text-brand-muted" style="font-size:1.3rem;"></i>
+        <span class="font-body font-medium text-brand-muted" style="font-size:0.65rem;">Requests</span>
+      </button>
+
+      <button class="nav-item flex flex-col items-center gap-1 px-4 py-1 rounded-2xl active:bg-surface-low"
+              onclick="alert('Inbox coming soon!')">
+        <i class="ph ph-chat-circle text-brand-muted" style="font-size:1.3rem;"></i>
+        <span class="font-body font-medium text-brand-muted" style="font-size:0.65rem;">Inbox</span>
+      </button>
+
+      <button class="nav-item flex flex-col items-center gap-1 px-4 py-1 rounded-2xl active:bg-surface-low"
+              onclick="alert('Profile coming soon!')">
+        <i class="ph ph-user text-brand-muted" style="font-size:1.3rem;"></i>
+        <span class="font-body font-medium text-brand-muted" style="font-size:0.65rem;">Profile</span>
+      </button>
+    </nav>
+
+    <!-- safe area spacer -->
+    <div style="height: env(safe-area-inset-bottom, 8px);"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PROVIDER POPUP (map tap) -->
+<div id="provider-popup"
+     class="fixed z-50 hidden max-w-[430px] mx-auto left-0 right-0"
+     style="bottom: calc(320px + 1rem);">
+  <div class="mx-4">
+    <div class="glass rounded-3xl p-4 shadow-xl flex items-center gap-4 animate-slide-up">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center flex-shrink-0">
+        <i class="ph-bold ph-user text-white" style="font-size:1.4rem;"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span id="popup-name" class="font-display font-bold text-brand-dark text-base tracking-tight">Tapiwa M.</span>
+          <span class="px-2 py-0.5 rounded-full text-white font-body font-bold text-xs"
+                style="background: linear-gradient(135deg, #9D4300, #F77622);">
+            ★ 4.9
+          </span>
+        </div>
+        <p id="popup-service" class="font-body text-brand-muted text-sm font-medium truncate">Laundry Expert · 8 min away</p>
+        <p id="popup-price" class="font-display font-black text-brand-orange text-lg tracking-tight">R85</p>
+      </div>
+      <button class="fab w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style="background: linear-gradient(135deg, #9D4300, #F77622);"
+              onclick="bookProvider()">
+        <i class="ph-bold ph-arrow-up-right text-white" style="font-size:1.1rem;"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ LOCATION MODAL -->
+<div id="location-modal"
+     class="hidden fixed inset-0 z-[200] flex items-end max-w-[430px] mx-auto"
+     style="background: rgba(24,28,39,0.4); backdrop-filter: blur(4px);"
+     onclick="this.classList.add('hidden')">
+  <div class="w-full glass rounded-t-[2.5rem] p-6 pb-10" onclick="event.stopPropagation()">
+    <div class="w-10 h-1 bg-surface-high rounded-full mx-auto mb-6"></div>
+    <h2 class="font-display font-black text-brand-dark text-2xl tracking-tight mb-4">Your location</h2>
+
+    <div class="flex items-center gap-3 p-4 rounded-2xl mb-3 cursor-pointer active:scale-[0.98] transition-transform"
+         style="background:#F2EDE8;"
+         onclick="setLocation('Current location')">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+           style="background: linear-gradient(135deg, #9D4300, #F77622);">
+        <i class="ph-bold ph-crosshair-simple text-white" style="font-size:1rem;"></i>
+      </div>
+      <div>
+        <p class="font-display font-bold text-brand-dark text-sm">Use current location</p>
+        <p class="font-body text-brand-muted text-xs">GPS · Auto-update</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 p-4 rounded-2xl cursor-pointer active:scale-[0.98] transition-transform"
+         style="background:#F2EDE8;"
+         onclick="setLocation('Sunnyside, Pretoria')">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-mid">
+        <i class="ph-bold ph-map-pin text-brand-muted" style="font-size:1rem;"></i>
+      </div>
+      <div>
+        <p class="font-display font-bold text-brand-dark text-sm">Sunnyside, Pretoria</p>
+        <p class="font-body text-brand-muted text-xs">Recent location</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SCRIPTS -->
+<script>
+  // ── Splash logic ──────────────────────────────────────────
+  const splash = document.getElementById('splash');
+  let splashDone = false;
+
+  function dismissSplash() {
+    if (splashDone) return;
+    splashDone = true;
+    splash.style.animation = 'splash-fade 0.7s ease forwards';
+    setTimeout(() => { splash.style.display = 'none'; }, 700);
+  }
+
+  // auto-dismiss after 2.6s, or on tap
+  setTimeout(dismissSplash, 2600);
+  splash.addEventListener('click', dismissSplash);
+  splash.addEventListener('touchstart', dismissSplash);
+
+
+  // ── Leaflet map ───────────────────────────────────────────
+  const CENTER = [-25.7479, 28.2293]; // Sunnyside, Pretoria
+
+  const map = L.map('map', {
+    center: CENTER,
+    zoom: 15,
+    zoomControl: false,
+    attributionControl: false,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(map);
+
+  // user location marker
+  const userIcon = L.divIcon({
+    className: '',
+    html: `<div style="
+      width:18px; height:18px; border-radius:50%;
+      background: linear-gradient(135deg,#9D4300,#F77622);
+      border: 3px solid white;
+      box-shadow: 0 2px 12px rgba(247,118,34,0.6);
+    "></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
+
+  L.marker(CENTER, { icon: userIcon }).addTo(map)
+    .bindPopup('<b>You are here</b>');
+
+  // Provider data (mock)
+  const providers = [
+    { pos: [-25.7455, 28.2260], name: 'Tapiwa M.',  service: 'Laundry Expert',  price: 'R85',  rating: '4.9', emoji: '👕' },
+    { pos: [-25.7510, 28.2320], name: 'Amahle N.',  service: 'Mobile Barber',   price: 'R60',  rating: '4.8', emoji: '✂️' },
+    { pos: [-25.7430, 28.2350], name: 'Sipho K.',   service: 'Home Cleaner',    price: 'R120', rating: '5.0', emoji: '🧹' },
+    { pos: [-25.7490, 28.2210], name: 'Tebogo R.',  service: 'Handyman',        price: 'R150', rating: '4.7', emoji: '🔧' },
+    { pos: [-25.7525, 28.2280], name: 'Kefilwe B.', service: 'Laundry & Iron',  price: 'R95',  rating: '4.9', emoji: '👕' },
+    { pos: [-25.7465, 28.2380], name: 'Lebo M.',    service: 'Deep Cleaning',   price: 'R200', rating: '4.6', emoji: '🧹' },
+  ];
+
+  providers.forEach((p, i) => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="provider-marker${i === 0 ? ' premium' : ''}"
+                  style="cursor:pointer; width:38px; height:38px; border-radius:50%;
+                         background:${i === 0 ? 'linear-gradient(135deg,#9D4300,#F77622)' : '#F77622'};
+                         border:3px solid white;
+                         box-shadow:0 2px 14px rgba(247,118,34,0.4);
+                         display:flex; align-items:center; justify-content:center;
+                         font-size:17px;">
+               ${p.emoji}
+             </div>`,
+      iconSize: [38, 38],
+      iconAnchor: [19, 19],
+    });
+
+    L.marker(p.pos, { icon })
+      .addTo(map)
+      .on('click', () => showProviderPopup(p));
+  });
+
+  function centerMap() {
+    map.flyTo(CENTER, 15, { animate: true, duration: 0.8 });
+  }
+
+  // ── Provider popup ────────────────────────────────────────
+  const popup = document.getElementById('provider-popup');
+  let popupTimeout;
+
+  function showProviderPopup(p) {
+    document.getElementById('popup-name').textContent    = p.name;
+    document.getElementById('popup-service').textContent = p.service + ' · ' + Math.floor(Math.random()*12+3) + ' min away';
+    document.getElementById('popup-price').textContent   = p.price;
+    popup.classList.remove('hidden');
+    clearTimeout(popupTimeout);
+    popupTimeout = setTimeout(() => popup.classList.add('hidden'), 5000);
+  }
+
+  function bookProvider() {
+    popup.classList.add('hidden');
+    const name    = document.getElementById('popup-name').textContent;
+    const service = document.getElementById('popup-service').textContent.split('·')[0].trim();
+    const price   = document.getElementById('popup-price').textContent;
+    const query   = 'Book ' + name + ' for ' + service;
+
+    parseAndStore(query);
+    // Also store the pre-selected provider so Screen 3 can surface them first
+    sessionStorage.setItem('iskropo_preselected_provider', name);
+    sessionStorage.setItem('iskropo_preselected_price',    price);
+    window.location.href = '/understanding';
+  }
+
+  // close popup on map click
+  map.on('click', () => popup.classList.add('hidden'));
+
+
+  // ── Input interactions ────────────────────────────────────
+  function inputFocus(focused) {
+    const box = document.getElementById('input-box');
+    box.style.boxShadow = focused
+      ? 'inset 0 0 0 1.5px rgba(247,118,34,0.5)'
+      : 'inset 0 0 0 1.5px transparent';
+  }
+
+  function showSubmit(show) {
+    const btn = document.getElementById('submit-btn');
+    btn.style.opacity  = show ? '1' : '0';
+    btn.style.transform = show ? 'scale(1)' : 'scale(0.7)';
+  }
+
+  function handleInput(val) {
+    showSubmit(val.trim().length > 0);
+  }
+
+  function parseAndStore(query) {
+    const q = query.toLowerCase();
+    let service = 'General Help', when = 'ASAP', budget = 'Flexible';
+
+    if (q.includes('laundry') || q.includes('wash'))                          service = 'Laundry';
+    else if (q.includes('hair') || q.includes('cut') || q.includes('barber')) service = 'Haircut';
+    else if (q.includes('clean'))                                              service = 'Cleaning';
+    else if (q.includes('fix') || q.includes('repair') || q.includes('handyman') || q.includes('plumb')) service = 'Handyman';
+
+    if (q.includes('tomorrow'))                                when = 'Tomorrow';
+    else if (q.includes('today') || q.includes('now') || q.includes('urgent')) when = 'Today';
+    else if (q.includes('morning'))                            when = 'This morning';
+    else if (q.includes('weekend'))                            when = 'Weekend';
+
+    const budgetMatch = q.match(/r\s*(\d+)/i);
+    if (budgetMatch) budget = 'R' + budgetMatch[1];
+
+    const location = document.querySelector('#location-pill span.font-display').textContent;
+
+    sessionStorage.setItem('iskropo_query',    query);
+    sessionStorage.setItem('iskropo_service',  service);
+    sessionStorage.setItem('iskropo_when',     when);
+    sessionStorage.setItem('iskropo_budget',   budget);
+    sessionStorage.setItem('iskropo_location', location);
+  }
+
+  function submitRequest() {
+    const val = document.getElementById('ai-search').value.trim();
+    if (!val) return;
+    parseAndStore(val);
+    window.location.href = '/understanding';
+  }
+
+
+  // ── Intent chips ──────────────────────────────────────────
+  function selectChip(el) {
+    // reset all
+    document.querySelectorAll('.intent-chip').forEach(c => {
+      c.classList.remove('active');
+      c.style.background = '#F2EDE8';
+      c.style.color      = '#584237';
+      c.style.boxShadow  = '';
+    });
+    // activate
+    el.classList.add('active');
+    el.style.background = 'linear-gradient(135deg, #9D4300, #F77622)';
+    el.style.color      = '#fff';
+    el.style.boxShadow  = '0 4px 16px rgba(247,118,34,0.35)';
+
+    const intent = el.dataset.intent;
+    const input  = document.getElementById('ai-search');
+    input.value  = intent;
+    showSubmit(true);
+    inputFocus(true);
+    input.focus();
+  }
+
+
+  // ── Location modal ────────────────────────────────────────
+  function setLocation(name) {
+    document.querySelector('#location-pill span.font-display').textContent = name;
+    document.getElementById('location-modal').classList.add('hidden');
+  }
+
+
+  // ── Bottom sheet drag (basic) ─────────────────────────────
+  let startY = 0;
+  const sheet = document.getElementById('bottom-sheet');
+
+  sheet.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 0 && dy < 80) sheet.style.transform = `translateY(${dy}px)`;
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', e => {
+    const dy = e.changedTouches[0].clientY - startY;
+    sheet.style.transform = '';
+    sheet.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
+  }, { passive: true });
+</script>
+</body>
+</html>

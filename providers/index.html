@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Iskropo – Provider Found</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange:   #F77622;
+    --deep:     #9D4300;
+    --fire:     #FE7B27;
+    --dark:     #181C27;
+    --muted:    #8A6A55;
+    --surface0: #F9F7F5;
+    --surface1: #F2EDE8;
+    --surface2: #E8E0D8;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+    background: var(--surface0);
+    color: var(--dark);
+  }
+
+  /* ── Map ── */
+  #map {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    filter: saturate(0.25) brightness(1.05) contrast(0.9);
+  }
+  .leaflet-control-container { display: none !important; }
+  .leaflet-control-attribution { display: none !important; }
+
+  /* ── Top bar ── */
+  #topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 52px 20px 16px;
+    background: linear-gradient(to bottom, rgba(249,247,245,0.92) 60%, transparent);
+  }
+
+  .back-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 12px rgba(24,28,39,0.10);
+    transition: transform 0.15s, box-shadow 0.15s;
+    color: var(--dark);
+  }
+  .back-btn:active { transform: scale(0.93); box-shadow: 0 1px 6px rgba(24,28,39,0.08); }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(24,28,39,0.10);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--dark);
+  }
+
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22C55E;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.35);
+    animation: pulse-ring 1.6s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.6); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+
+  /* ── Bottom Sheet ── */
+  #sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    height: 580px;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 40px 40px 0 0;
+    padding: 0 20px 28px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateY(100%);
+    transition: transform 0.55s cubic-bezier(0.32, 0.72, 0, 1);
+    scrollbar-width: none;
+  }
+  #sheet::-webkit-scrollbar { display: none; }
+  #sheet.open { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--surface2);
+    border-radius: 999px;
+    margin: 14px auto 0;
+  }
+
+  /* ── Headline ── */
+  .headline {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 2.2rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--dark);
+    margin-top: 22px;
+  }
+
+  .sub-headline {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* ── Option counter ── */
+  .option-counter {
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: right;
+    margin-bottom: 8px;
+    height: 16px;
+  }
+
+  /* ── Provider card ── */
+  #provider-card {
+    background: var(--surface1);
+    border-radius: 24px;
+    padding: 20px;
+    margin-top: 18px;
+    will-change: transform, opacity;
+  }
+
+  .provider-top-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+
+  .verified-badge {
+    position: absolute;
+    bottom: -2px; right: -2px;
+    width: 22px; height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .provider-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .provider-name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--dark);
+    line-height: 1.1;
+  }
+
+  .provider-role {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--orange);
+    margin-top: 3px;
+  }
+
+  .tier-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 7px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--fire) 100%);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  .provider-price-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .provider-price {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    color: var(--orange);
+    line-height: 1;
+  }
+
+  .eta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(247,118,34,0.12);
+    border-radius: 999px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--deep);
+  }
+
+  /* Rating row */
+  .rating-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .rating-number {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--dark);
+  }
+
+  .rating-jobs {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .rating-bar-track {
+    flex: 1;
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .rating-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), var(--fire));
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* ── Request summary ── */
+  .summary-section {
+    margin-top: 20px;
+  }
+
+  .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
+
+  .summary-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .summary-icon-wrap {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: var(--surface1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .summary-label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .summary-value {
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  /* ── Action buttons ── */
+  .actions {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .confirm-btn {
+    width: 100%;
+    height: 56px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--fire) 100%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(247,118,34,0.38);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .confirm-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 10px rgba(247,118,34,0.25);
+  }
+
+  .see-another-btn {
+    background: none;
+    border: none;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.15s;
+  }
+  .see-another-btn:active { color: var(--orange); }
+
+  /* ── Custom map markers ── */
+  .user-dot-marker {
+    width: 14px; height: 14px;
+    background: #F77622;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 3px rgba(247,118,34,0.30), 0 2px 8px rgba(0,0,0,0.18);
+  }
+
+  .provider-marker-wrap {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<!-- Map -->
+<div id="map"></div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <button class="back-btn" onclick="goBack()" aria-label="Back">
+    <i class="ph-bold ph-arrow-left" style="font-size:20px;"></i>
+  </button>
+  <div class="status-pill">
+    <div class="pulse-dot"></div>
+    Match found
+  </div>
+</div>
+
+<!-- Bottom sheet -->
+<div id="sheet">
+  <div class="sheet-handle"></div>
+
+  <div class="headline">We found someone<br>nearby.</div>
+  <div class="sub-headline">Matched to your request &middot; 3 options available</div>
+
+  <div style="margin-top:20px;">
+    <div class="option-counter" id="option-counter">Option 1 of 3</div>
+
+    <!-- Provider card -->
+    <div id="provider-card">
+      <div class="provider-top-row">
+        <div class="avatar-wrap">
+          <div class="avatar" id="prov-avatar"></div>
+          <div class="verified-badge">
+            <i class="ph-fill ph-seal-check" style="font-size:16px; color:#F77622;"></i>
+          </div>
+        </div>
+
+        <div class="provider-meta">
+          <div class="provider-name" id="prov-name"></div>
+          <div class="provider-role" id="prov-role"></div>
+          <div class="tier-badge" id="prov-tier"></div>
+        </div>
+
+        <div class="provider-price-col">
+          <div class="provider-price" id="prov-price"></div>
+          <div class="eta-pill">
+            <i class="ph-bold ph-clock" style="font-size:12px;"></i>
+            <span id="prov-eta"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rating-row">
+        <i class="ph-fill ph-star" style="font-size:16px; color:#F77622; flex-shrink:0;"></i>
+        <span class="rating-number" id="prov-rating"></span>
+        <span class="rating-jobs" id="prov-jobs"></span>
+        <div class="rating-bar-track">
+          <div class="rating-bar-fill" id="prov-rating-bar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request summary -->
+  <div class="summary-section">
+    <div class="summary-row">
+      <div class="summary-left">
+        <div class="summary-icon-wrap">
+          <i class="ph-bold ph-sparkle" style="font-size:16px; color:#F77622;"></i>
+        </div>
+        <span class="summary-label">Service</span>
+      </div>
+      <span class="summary-value" id="sum-service"></span>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-left">
+        <div class="summary-icon-wrap">
+          <i class="ph-bold ph-calendar-blank" style="font-size:16px; color:#F77622;"></i>
+        </div>
+        <span class="summary-label">When</span>
+      </div>
+      <span class="summary-value" id="sum-when"></span>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-left">
+        <div class="summary-icon-wrap">
+          <i class="ph-bold ph-currency-circle-dollar" style="font-size:16px; color:#F77622;"></i>
+        </div>
+        <span class="summary-label">Budget</span>
+      </div>
+      <span class="summary-value" id="sum-budget"></span>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-left">
+        <div class="summary-icon-wrap">
+          <i class="ph-bold ph-map-pin" style="font-size:16px; color:#F77622;"></i>
+        </div>
+        <span class="summary-label">Location</span>
+      </div>
+      <span class="summary-value" id="sum-location"></span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="confirm-btn" id="confirm-btn">Confirm request</button>
+    <button class="see-another-btn" id="see-another-btn">See another option &rarr;</button>
+  </div>
+</div>
+
+<script>
+// ── Session data ──────────────────────────────────────────────
+const service  = sessionStorage.getItem('iskropo_service')  || 'Laundry';
+const when     = sessionStorage.getItem('iskropo_when')     || 'Tomorrow';
+const budget   = sessionStorage.getItem('iskropo_budget')   || 'R100';
+const location = sessionStorage.getItem('iskropo_location') || 'Sunnyside';
+
+// Populate summary
+document.getElementById('sum-service').textContent  = service;
+document.getElementById('sum-when').textContent     = when;
+document.getElementById('sum-budget').textContent   = budget;
+document.getElementById('sum-location').textContent = location;
+
+// ── Provider data ─────────────────────────────────────────────
+const providers = [
+  { name: 'Tapiwa M.',  role: 'Laundry Expert',   price: 'R85',  rating: '4.9', jobs: 312, eta: '12 min', tier: 'Gold Pro',   pos: [-25.7455, 28.2260], initials: 'TM', color: '#F77622', emoji: '&#x1F9FA;' },
+  { name: 'Amahle N.',  role: 'Mobile Barber',     price: 'R60',  rating: '4.8', jobs: 189, eta: '8 min',  tier: 'Silver Pro', pos: [-25.7510, 28.2320], initials: 'AN', color: '#9D4300', emoji: '&#x2702;&#xFE0F;' },
+  { name: 'Sipho K.',   role: 'Home Cleaner',      price: 'R120', rating: '5.0', jobs: 447, eta: '18 min', tier: 'Gold Pro',   pos: [-25.7430, 28.2350], initials: 'SK', color: '#F77622', emoji: '&#x1F9F9;' },
+];
+
+const USER_POS = [-25.7479, 28.2293];
+let currentIndex = 0;
+let isAnimating = false;
+
+// ── Map setup ─────────────────────────────────────────────────
+const map = L.map('map', {
+  zoomControl: false,
+  attributionControl: false,
+  dragging: false,
+  scrollWheelZoom: false,
+  doubleClickZoom: false,
+  touchZoom: false,
+  keyboard: false,
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+}).addTo(map);
+
+// User marker — small orange dot
+const userIcon = L.divIcon({
+  html: '<div class="user-dot-marker"></div>',
+  className: '',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+L.marker(USER_POS, { icon: userIcon }).addTo(map);
+
+// Provider marker (mutable reference)
+function makeProviderIcon(emoji) {
+  return L.divIcon({
+    html: '<div class="provider-marker-wrap">' + emoji + '</div>',
+    className: '',
+    iconSize: [40, 40],
+    iconAnchor: [20, 36],
+  });
+}
+
+let providerMarker = L.marker(providers[0].pos, {
+  icon: makeProviderIcon(providers[0].emoji),
+}).addTo(map);
+
+// Dashed polyline
+let polyline = L.polyline([USER_POS, providers[0].pos], {
+  color: '#F77622',
+  weight: 2.5,
+  dashArray: '8, 6',
+  opacity: 0.8,
+}).addTo(map);
+
+// Fit on load
+function fitBoth(provPos) {
+  const bounds = L.latLngBounds([USER_POS, provPos]);
+  map.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+}
+setTimeout(function() { fitBoth(providers[0].pos); }, 300);
+
+// ── Render provider card ──────────────────────────────────────
+function renderProvider(p, idx) {
+  var avatar = document.getElementById('prov-avatar');
+  avatar.textContent = p.initials;
+  avatar.style.background = 'linear-gradient(135deg, ' + p.color + ' 0%, ' + p.color + 'bb 100%)';
+
+  document.getElementById('prov-name').textContent  = p.name;
+  document.getElementById('prov-role').textContent  = p.role;
+  document.getElementById('prov-tier').textContent  = p.tier;
+  document.getElementById('prov-price').textContent = p.price;
+  document.getElementById('prov-eta').textContent   = p.eta;
+  document.getElementById('prov-rating').textContent = p.rating;
+  document.getElementById('prov-jobs').textContent  = '(' + p.jobs + ' jobs)';
+
+  var pct = (parseFloat(p.rating) / 5) * 100;
+  document.getElementById('prov-rating-bar').style.width = pct + '%';
+
+  document.getElementById('option-counter').textContent =
+    'Option ' + (idx + 1) + ' of ' + providers.length;
+}
+
+renderProvider(providers[0], 0);
+
+// ── Animate card swap ─────────────────────────────────────────
+function swapProvider() {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  var card = document.getElementById('provider-card');
+
+  // Out: slide left + fade
+  card.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+  card.style.transform  = 'translateX(-30px)';
+  card.style.opacity    = '0';
+
+  setTimeout(function() {
+    currentIndex = (currentIndex + 1) % providers.length;
+    var p = providers[currentIndex];
+
+    renderProvider(p, currentIndex);
+
+    // Update map
+    providerMarker.setIcon(makeProviderIcon(p.emoji));
+    providerMarker.setLatLng(p.pos);
+    polyline.setLatLngs([USER_POS, p.pos]);
+    map.flyTo(p.pos, 15, { duration: 1.2, easeLinearity: 0.35 });
+
+    // Position from right before animating in
+    card.style.transition = 'none';
+    card.style.transform  = 'translateX(30px)';
+    card.style.opacity    = '0';
+
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        card.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease';
+        card.style.transform  = 'translateX(0)';
+        card.style.opacity    = '1';
+        setTimeout(function() { isAnimating = false; }, 320);
+      });
+    });
+  }, 210);
+}
+
+document.getElementById('see-another-btn').addEventListener('click', swapProvider);
+
+// ── Confirm ───────────────────────────────────────────────────
+document.getElementById('confirm-btn').addEventListener('click', function() {
+  var p = providers[currentIndex];
+  sessionStorage.setItem('iskropo_confirmed_provider', p.name);
+  sessionStorage.setItem('iskropo_confirmed_price',    p.price);
+  sessionStorage.setItem('iskropo_confirmed_service',  service);
+  sessionStorage.setItem('iskropo_confirmed_eta',      p.eta);
+  window.location.href = '/tracking';
+});
+
+// ── Back ──────────────────────────────────────────────────────
+function goBack() {
+  window.location.href = '/understanding';
+}
+
+// ── Slide sheet in on load ────────────────────────────────────
+setTimeout(function() {
+  document.getElementById('sheet').classList.add('open');
+}, 120);
+</script>
+</body>
+</html>

@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Live Request Status — Iskropo</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-orange: #F77622;
+    --brand-deep: #9D4300;
+    --brand-fire: #FE7B27;
+    --brand-dark: #181C27;
+    --brand-muted: #8A6A55;
+    --surface-1: #F9F7F5;
+    --surface-2: #F2EDE8;
+    --surface-3: #E8E0D8;
+    --error: #BA1A1A;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+    background: var(--surface-1);
+  }
+
+  /* ── MAP ─────────────────────────────────────────── */
+  #map {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    filter: saturate(0.25) brightness(1.05) contrast(0.9);
+  }
+
+  /* Hide all Leaflet controls + attribution */
+  .leaflet-control-container,
+  .leaflet-control-attribution { display: none !important; }
+
+  /* ── TOP BAR ─────────────────────────────────────── */
+  #topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 14px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  #back-btn {
+    position: absolute;
+    left: 16px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--brand-dark);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+    transition: transform 0.15s;
+  }
+  #back-btn:active { transform: scale(0.93); }
+
+  #status-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--brand-dark);
+    transition: background 0.4s;
+  }
+  #status-pill.arrived {
+    background: rgba(220,255,230,0.92);
+    color: #1a6b38;
+  }
+
+  .pulse-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--brand-orange);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: var(--brand-orange);
+    opacity: 0.35;
+    animation: pulse-ring 1.4s ease-out infinite;
+  }
+  .pulse-dot.green { background: #22c55e; }
+  .pulse-dot.green::after { background: #22c55e; }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.35; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* ── BOTTOM SHEET ────────────────────────────────── */
+  #bottom-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    height: 46vh;
+    min-height: 340px;
+    max-height: 520px;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 40px 40px 0 0;
+    padding: 0 20px 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    transition: background 0.5s;
+    box-shadow: 0 -8px 48px rgba(0,0,0,0.10);
+  }
+  #bottom-sheet.arrived {
+    background: rgba(220,255,230,0.72);
+  }
+  #bottom-sheet::-webkit-scrollbar { display: none; }
+
+  /* drag handle */
+  .sheet-handle {
+    width: 44px; height: 5px;
+    background: var(--surface-3);
+    border-radius: 999px;
+    margin: 12px auto 16px;
+  }
+
+  /* ── HEADLINE SECTION ────────────────────────────── */
+  #headline {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900;
+    font-size: 1.75rem;
+    letter-spacing: -0.03em;
+    color: var(--brand-dark);
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  #subtext {
+    font-size: 0.88rem;
+    color: var(--brand-muted);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  #subtext span {
+    color: var(--brand-orange);
+    font-weight: 700;
+  }
+
+  /* ── PROVIDER ROW ────────────────────────────────── */
+  .provider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-deep) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #fff;
+  }
+  .verified-badge {
+    position: absolute;
+    bottom: -2px; right: -2px;
+    background: #fff;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .verified-badge i { color: var(--brand-orange); font-size: 14px; }
+
+  .provider-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .provider-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+  .provider-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--brand-dark);
+  }
+  .rating-pill {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--brand-orange);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .rating-pill i { font-size: 10px; }
+  .provider-tier {
+    font-size: 0.78rem;
+    color: var(--brand-muted);
+    font-weight: 500;
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .action-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .action-btn:active { transform: scale(0.90); }
+  .btn-call {
+    background: var(--surface-3);
+    color: var(--brand-dark);
+  }
+  .btn-msg {
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-fire) 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(247,118,34,0.35);
+  }
+
+  /* ── PROGRESS TRACKER ───────────────────────────── */
+  .progress-section {
+    margin-bottom: 14px;
+  }
+  .progress-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .seg {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    transition: background 0.5s;
+    overflow: hidden;
+    position: relative;
+  }
+  .seg.filled { background: var(--brand-orange); }
+  .seg.active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.55);
+    animation: seg-pulse 1.2s ease-in-out infinite;
+    border-radius: 999px;
+  }
+  @keyframes seg-pulse {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+  .seg.green-filled { background: #22c55e; }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+  }
+  .prog-label {
+    font-size: 0.68rem;
+    color: var(--brand-muted);
+    font-weight: 600;
+    text-align: center;
+    flex: 1;
+    transition: color 0.4s;
+  }
+  .prog-label.active-label { color: var(--brand-orange); }
+  .prog-label.done-label { color: #22c55e; }
+
+  /* ── SUMMARY GRID ────────────────────────────────── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .summary-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: 16px;
+  }
+  .summary-cell i {
+    font-size: 18px;
+    color: var(--brand-orange);
+    flex-shrink: 0;
+  }
+  .summary-label {
+    font-size: 0.7rem;
+    color: var(--brand-muted);
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .summary-value {
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--brand-dark);
+    line-height: 1;
+  }
+
+  /* ── CANCEL BUTTON ───────────────────────────────── */
+  #cancel-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--error);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  #cancel-btn:hover { background: rgba(186,26,26,0.06); }
+  #cancel-btn i { font-size: 18px; }
+
+  /* ── CANCEL MODAL ────────────────────────────────── */
+  #cancel-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(24,28,39,0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #cancel-modal.open { display: flex; }
+
+  .modal-card {
+    width: 100%;
+    max-width: 360px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 32px;
+    padding: 28px 24px 24px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.18);
+    animation: modal-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes modal-in {
+    from { transform: scale(0.88) translateY(24px); opacity: 0; }
+    to   { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .modal-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--brand-dark);
+    margin-bottom: 8px;
+  }
+  .modal-body {
+    font-size: 0.88rem;
+    color: var(--brand-muted);
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-keep {
+    width: 100%;
+    padding: 14px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-fire) 100%);
+    color: #fff;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(247,118,34,0.30);
+    transition: opacity 0.15s;
+  }
+  .btn-keep:active { opacity: 0.85; }
+  .btn-cancel-confirm {
+    width: 100%;
+    padding: 13px;
+    border-radius: 999px;
+    border: 2px solid var(--error);
+    background: transparent;
+    color: var(--error);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-cancel-confirm:hover { background: rgba(186,26,26,0.06); }
+
+  /* ── TOAST ───────────────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: calc(46vh + 16px);
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 300;
+    padding: 10px 22px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 999px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--brand-dark);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    white-space: nowrap;
+  }
+  #toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── USER MAP DOT ────────────────────────────────── */
+  .user-dot-outer {
+    width: 24px; height: 24px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .user-dot-pulse {
+    position: absolute;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(247,118,34,0.30);
+    animation: pulse-ring 1.4s ease-out infinite;
+  }
+  .user-dot-inner {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--brand-orange);
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(247,118,34,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── PROVIDER MARKER ─────────────────────────────── */
+  .provider-marker-pin {
+    width: 38px; height: 38px;
+    border-radius: 50% 50% 50% 4px;
+    transform: rotate(-45deg);
+    background: linear-gradient(135deg, var(--brand-orange) 0%, var(--brand-fire) 100%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(247,118,34,0.45);
+  }
+  .provider-marker-emoji {
+    transform: rotate(45deg);
+    font-size: 16px;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <button id="back-btn" onclick="history.back()" aria-label="Back">
+    <i class="ph-bold ph-arrow-left" style="font-size:20px;"></i>
+  </button>
+  <div id="status-pill">
+    <div class="pulse-dot" id="status-dot"></div>
+    <span id="status-text">On the way</span>
+  </div>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div id="bottom-sheet">
+  <div class="sheet-handle"></div>
+
+  <!-- Headline -->
+  <div id="headline"></div>
+  <div id="subtext">Arriving in approximately <span id="eta-display">--</span></div>
+
+  <!-- Provider row -->
+  <div class="provider-row">
+    <div class="avatar-wrap">
+      <div class="avatar" id="avatar-initials"></div>
+      <div class="verified-badge"><i class="ph-fill ph-seal-check"></i></div>
+    </div>
+    <div class="provider-info">
+      <div class="provider-name-row">
+        <span class="provider-name" id="provider-name-display"></span>
+        <div class="rating-pill"><i class="ph-fill ph-star"></i> 4.9</div>
+      </div>
+      <div class="provider-tier">Gold Pro · 312 jobs</div>
+    </div>
+    <div class="action-btns">
+      <button class="action-btn btn-call" onclick="window.location.href='tel:+27600000000'" aria-label="Call">
+        <i class="ph-bold ph-phone"></i>
+      </button>
+      <button class="action-btn btn-msg" onclick="showToast('Chat coming soon!')" aria-label="Message">
+        <i class="ph-bold ph-chat-circle"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress tracker -->
+  <div class="progress-section">
+    <div class="progress-bar">
+      <div class="seg filled" id="seg-1"></div>
+      <div class="seg filled active" id="seg-2"></div>
+      <div class="seg" id="seg-3"></div>
+      <div class="seg" id="seg-4"></div>
+    </div>
+    <div class="progress-labels">
+      <span class="prog-label" id="lbl-1">Confirmed</span>
+      <span class="prog-label active-label" id="lbl-2">On the way</span>
+      <span class="prog-label" id="lbl-3">In progress</span>
+      <span class="prog-label" id="lbl-4">Done</span>
+    </div>
+  </div>
+
+  <!-- Summary grid -->
+  <div class="summary-grid">
+    <div class="summary-cell">
+      <i class="ph-bold ph-wrench" id="service-icon"></i>
+      <div>
+        <div class="summary-label">Service</div>
+        <div class="summary-value" id="summary-service"></div>
+      </div>
+    </div>
+    <div class="summary-cell">
+      <i class="ph-bold ph-map-pin"></i>
+      <div>
+        <div class="summary-label">Address</div>
+        <div class="summary-value">Sunnyside, PTA</div>
+      </div>
+    </div>
+    <div class="summary-cell">
+      <i class="ph-bold ph-currency-zar"></i>
+      <div>
+        <div class="summary-label">Price</div>
+        <div class="summary-value" id="summary-price"></div>
+      </div>
+    </div>
+    <div class="summary-cell">
+      <i class="ph-bold ph-clock"></i>
+      <div>
+        <div class="summary-label">ETA</div>
+        <div class="summary-value" id="summary-eta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel -->
+  <button id="cancel-btn" onclick="openCancelModal()">
+    <i class="ph-bold ph-x-circle"></i>
+    Cancel Request
+  </button>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancel-modal">
+  <div class="modal-card">
+    <div class="modal-title">Cancel this request?</div>
+    <div class="modal-body" id="modal-body-text">
+      Tapiwa is already on the way. Cancelling may incur a fee.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-keep" onclick="closeCancelModal()">Keep request</button>
+      <button class="btn-cancel-confirm" onclick="confirmCancel()">Yes, cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ── SESSION DATA ──────────────────────────────────────
+  const providerName = sessionStorage.getItem('iskropo_confirmed_provider') || 'Tapiwa M.';
+  const price        = sessionStorage.getItem('iskropo_confirmed_price')    || 'R85';
+  const service      = sessionStorage.getItem('iskropo_confirmed_service')  || 'Laundry';
+  const eta          = sessionStorage.getItem('iskropo_confirmed_eta')      || '12 min';
+
+  // ── POPULATE STATIC UI ────────────────────────────────
+  document.getElementById('headline').textContent = providerName + ' is on the way';
+  document.getElementById('provider-name-display').textContent = providerName;
+  document.getElementById('summary-service').textContent = service;
+  document.getElementById('summary-price').textContent = price;
+
+  // Avatar initials
+  const parts = providerName.trim().split(' ');
+  const initials = parts.length >= 2
+    ? parts[0][0] + parts[1][0]
+    : parts[0].substring(0, 2);
+  document.getElementById('avatar-initials').textContent = initials.toUpperCase();
+
+  // Modal body uses first name
+  const firstName = providerName.split(' ')[0];
+  document.getElementById('modal-body-text').textContent =
+    firstName + ' is already on the way. Cancelling may incur a fee.';
+
+  // Service icon
+  const serviceIconMap = {
+    'laundry':   'ph-t-shirt',
+    'barber':    'ph-scissors',
+    'cleaner':   'ph-broom',
+    'handyman':  'ph-wrench',
+    'cleaning':  'ph-broom',
+  };
+  const sKey = service.toLowerCase();
+  const iconClass = serviceIconMap[sKey] || 'ph-wrench';
+  document.getElementById('service-icon').className = 'ph-bold ' + iconClass;
+
+  // Service emoji for map marker
+  const serviceEmojiMap = {
+    'laundry':   '👕',
+    'barber':    '✂️',
+    'cleaner':   '🧹',
+    'cleaning':  '🧹',
+    'handyman':  '🔧',
+  };
+  const providerEmoji = serviceEmojiMap[sKey] || '👤';
+
+  // ── ETA COUNTDOWN ─────────────────────────────────────
+  let etaMinutes = parseInt(eta) || 12;
+  let arrivedState = false;
+
+  function updateETA() {
+    const txt = etaMinutes <= 0 ? 'Now' : etaMinutes + ' min';
+    document.getElementById('eta-display').textContent = txt;
+    document.getElementById('summary-eta').textContent = txt;
+  }
+  updateETA();
+
+  const etaTimer = setInterval(() => {
+    etaMinutes = Math.max(0, etaMinutes - 1);
+    updateETA();
+    if (etaMinutes <= 0) {
+      clearInterval(etaTimer);
+      triggerArrived();
+    }
+  }, 8000);
+
+  // ── MAP INIT ──────────────────────────────────────────
+  const userPos     = [-25.7479, 28.2293];
+  const providerStart = [-25.7380, 28.2180];
+  let providerPos   = [...providerStart];
+  let hasArrived    = false;
+
+  const map = L.map('map', {
+    center: [-25.7430, 28.2237],
+    zoom: 14,
+    zoomControl: false,
+    attributionControl: false,
+    dragging: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    touchZoom: false,
+    keyboard: false,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '',
+  }).addTo(map);
+
+  // User dot marker
+  const userIcon = L.divIcon({
+    className: '',
+    html: `<div class="user-dot-outer">
+             <div class="user-dot-pulse"></div>
+             <div class="user-dot-inner"></div>
+           </div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+  L.marker(userPos, { icon: userIcon }).addTo(map);
+
+  // Provider marker
+  const providerIcon = L.divIcon({
+    className: '',
+    html: `<div class="provider-marker-pin">
+             <span class="provider-marker-emoji">${providerEmoji}</span>
+           </div>`,
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+  });
+  const providerMarker = L.marker(providerStart, { icon: providerIcon }).addTo(map);
+
+  // Polyline
+  let polyline = L.polyline([providerPos, userPos], {
+    color: '#F77622',
+    weight: 3,
+    opacity: 0.75,
+    dashArray: '6 8',
+  }).addTo(map);
+
+  function updatePolyline() {
+    polyline.setLatLngs([providerPos, userPos]);
+  }
+
+  // Fit map bounds
+  function refitMap() {
+    const bounds = L.latLngBounds([providerPos, userPos]);
+    map.fitBounds(bounds, { padding: [80, 80] });
+  }
+  refitMap();
+
+  // ── PROVIDER MOVEMENT ─────────────────────────────────
+  let totalSteps = 0;
+  let stepsDone  = 0;
+  // Estimate total steps: when dist < 0.001 we stop. Start dist:
+  const startDist = Math.abs(providerStart[0]-userPos[0]) + Math.abs(providerStart[1]-userPos[1]);
+
+  function moveProvider() {
+    if (hasArrived) return;
+    stepsDone++;
+
+    providerPos[0] += (userPos[0] - providerPos[0]) * 0.12;
+    providerPos[1] += (userPos[1] - providerPos[1]) * 0.12;
+    providerMarker.setLatLng(providerPos);
+    updatePolyline();
+
+    const dist = Math.abs(providerPos[0] - userPos[0]) + Math.abs(providerPos[1] - userPos[1]);
+    const progress = 1 - (dist / startDist);
+
+    // Stage 2: almost there at 60%
+    if (progress >= 0.60 && !hasArrived) {
+      updateStage2();
+    }
+
+    if (dist < 0.001) {
+      triggerArrived();
+    }
+  }
+  setInterval(moveProvider, 4000);
+
+  // ── STAGE MANAGEMENT ─────────────────────────────────
+  let currentStage = 1;
+
+  function updateStage2() {
+    if (currentStage >= 2) return;
+    currentStage = 2;
+    document.getElementById('status-text').textContent = 'Almost there';
+    // Keep orange pulse on seg-2, start filling seg-3
+    const seg3 = document.getElementById('seg-3');
+    seg3.classList.add('filled', 'active');
+    const lbl3 = document.getElementById('lbl-3');
+    lbl3.classList.add('active-label');
+    document.getElementById('lbl-2').classList.remove('active-label');
+  }
+
+  function triggerArrived() {
+    if (hasArrived) return;
+    hasArrived = true;
+    arrivedState = true;
+    clearInterval(etaTimer);
+
+    // Headline + subtext
+    document.getElementById('headline').textContent = 'Your provider is here! 🎉';
+    document.getElementById('subtext').innerHTML = 'Open the door — they\'re ready';
+
+    // Status pill → green
+    const pill = document.getElementById('status-pill');
+    pill.classList.add('arrived');
+    const dot = document.getElementById('status-dot');
+    dot.classList.add('green');
+    document.getElementById('status-text').textContent = 'Provider arrived!';
+
+    // Progress: all 4 filled, no pulsing
+    ['seg-1','seg-2','seg-3','seg-4'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.add('green-filled');
+      el.classList.remove('filled','active');
+    });
+    ['lbl-1','lbl-2','lbl-3','lbl-4'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active-label');
+      el.classList.add('done-label');
+    });
+
+    // Bottom sheet green tint
+    document.getElementById('bottom-sheet').classList.add('arrived');
+
+    // ETA display
+    document.getElementById('eta-display').textContent = 'Now';
+    document.getElementById('summary-eta').textContent = 'Now';
+
+    // Toast
+    showToast('🎉 ' + firstName + ' has arrived!');
+
+    // Move provider to user pos
+    providerMarker.setLatLng(userPos);
+    updatePolyline();
+  }
+
+  // ── TOAST ─────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('visible');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 3000);
+  }
+
+  // ── CANCEL MODAL ──────────────────────────────────────
+  function openCancelModal() {
+    document.getElementById('cancel-modal').classList.add('open');
+  }
+  function closeCancelModal() {
+    document.getElementById('cancel-modal').classList.remove('open');
+  }
+  function confirmCancel() {
+    alert('Request cancelled');
+    window.location.href = '/';
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('cancel-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+  });
+</script>
+</body>
+</html>

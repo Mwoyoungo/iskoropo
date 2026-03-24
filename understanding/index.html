@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Iskropo – Understanding Your Request</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            orange: '#F77622',
+            deep:   '#9D4300',
+            fire:   '#FE7B27',
+            dark:   '#181C27',
+            muted:  '#8A6A55',
+          },
+          surface: {
+            base:  '#F9F7F5',
+            low:   '#F2EDE8',
+            mid:   '#E8E0D8',
+            high:  '#DDD4CA',
+          }
+        },
+        fontFamily: {
+          display: ['"Plus Jakarta Sans"', 'sans-serif'],
+          body:    ['Manrope', 'sans-serif'],
+        },
+        borderRadius: {
+          '4xl': '2rem',
+          '5xl': '2.5rem',
+          '6xl': '3rem',
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%; overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+    background: #181C27;
+  }
+
+  /* ── Leaflet overrides ── */
+  #map {
+    position: fixed; inset: 0; z-index: 0;
+    filter: saturate(0.25) brightness(1.05) contrast(0.9);
+  }
+  .leaflet-control-zoom,
+  .leaflet-control-attribution { display: none !important; }
+
+  /* ── map overlay tint ── */
+  #map-overlay {
+    position: fixed; inset: 0; z-index: 1;
+    background: rgba(24, 28, 39, 0.32);
+    pointer-events: none;
+  }
+
+  /* ── top bar ── */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  #topbar-back {
+    position: absolute; left: 16px;
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(248,118,34,0.10);
+    border: none; cursor: pointer;
+    transition: background 0.18s, transform 0.12s;
+  }
+  #topbar-back:active { transform: scale(0.92); background: rgba(248,118,34,0.2); }
+  #topbar-wordmark {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900; font-size: 22px; letter-spacing: -0.5px;
+    color: #181C27;
+  }
+  #topbar-wordmark span { color: #F77622; }
+
+  /* ── bottom sheet ── */
+  #sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+    height: 72vh;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 40px 40px 0 0;
+    display: flex; flex-direction: column;
+    box-shadow: 0 -20px 80px rgba(0,0,0,0.16);
+    transform: translateY(100%);
+    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #sheet.visible { transform: translateY(0); }
+
+  /* pull handle */
+  .pull-handle {
+    width: 44px; height: 5px; border-radius: 99px;
+    background: #DDD4CA; margin: 14px auto 0;
+    flex-shrink: 0;
+  }
+
+  /* scrollable content */
+  #sheet-scroll {
+    flex: 1; overflow-y: auto; padding: 20px 24px 120px;
+    -webkit-overflow-scrolling: touch;
+  }
+  #sheet-scroll::-webkit-scrollbar { display: none; }
+
+  /* ── headline ── */
+  #headline h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 900; font-size: 32px; line-height: 1.1;
+    color: #181C27; margin: 0 0 6px;
+  }
+  #headline p {
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px; color: #8A6A55; margin: 0;
+  }
+
+  /* ── query input box ── */
+  #query-box-wrap {
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  #query-box-wrap.visible { opacity: 1; transform: translateY(0); }
+  #query-box {
+    width: 100%; padding: 14px 18px;
+    background: #F2EDE8; border-radius: 16px;
+    border: none; outline: none;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: #181C27; line-height: 1.5;
+    resize: none; min-height: 52px;
+    cursor: default;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #query-text-display {
+    background: #F2EDE8; border-radius: 16px;
+    padding: 14px 18px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: #181C27; line-height: 1.5;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #query-text-display i {
+    color: #F77622; flex-shrink: 0; font-size: 18px;
+  }
+  #query-typewriter { flex: 1; }
+  .cursor-blink {
+    display: inline-block; width: 2px; height: 1em;
+    background: #F77622; vertical-align: text-bottom;
+    animation: blink 0.75s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── parsing label ── */
+  #parse-label {
+    margin-top: 22px; margin-bottom: 10px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #8A6A55;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  #parse-label.visible { opacity: 1; }
+
+  /* ── parse chips ── */
+  #chips-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 99px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 700;
+    opacity: 0; transform: translateX(-20px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    flex-shrink: 0;
+  }
+  .chip.visible { opacity: 1; transform: translateX(0); }
+  .chip-service {
+    background: linear-gradient(135deg, #9D4300, #F77622);
+    color: #fff;
+  }
+  .chip-other {
+    background: #F2EDE8;
+    color: #584237;
+  }
+  .chip i { font-size: 15px; }
+
+  /* ── refine options ── */
+  #refine-section {
+    margin-top: 22px;
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  #refine-section.visible { opacity: 1; transform: translateY(0); }
+  #refine-label {
+    font-family: 'Manrope', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #8A6A55; margin-bottom: 10px;
+  }
+  .refine-row {
+    display: flex; align-items: center; gap: 14px;
+    background: #F2EDE8; border-radius: 16px;
+    padding: 15px 16px; margin-bottom: 8px;
+    cursor: pointer; border: none; width: 100%; text-align: left;
+    transition: transform 0.12s, background 0.15s;
+  }
+  .refine-row:active { transform: scale(0.98); background: #E8E0D8; }
+  .refine-icon {
+    width: 38px; height: 38px; border-radius: 12px;
+    background: rgba(247,118,34,0.12);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .refine-icon i { font-size: 18px; color: #F77622; }
+  .refine-text { flex: 1; }
+  .refine-text strong {
+    display: block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: #181C27; line-height: 1.3;
+  }
+  .refine-text span {
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px; color: #8A6A55;
+  }
+  .refine-chevron { color: #DDD4CA; font-size: 18px; }
+
+  /* ── loading bar ── */
+  #loading-section {
+    margin-top: 20px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  #loading-section.visible { opacity: 1; transform: translateY(0); }
+  #loading-track {
+    width: 100%; height: 6px; border-radius: 99px;
+    background: #E8E0D8; overflow: hidden;
+    margin-bottom: 10px;
+  }
+  #loading-fill {
+    height: 100%; border-radius: 99px; width: 0%;
+    background: linear-gradient(90deg, #9D4300, #F77622, #FE7B27);
+    background-size: 200% 100%;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #loading-fill.shimmer-anim {
+    animation: shimmer-bar 1.5s linear infinite;
+    width: 40%;
+  }
+  @keyframes shimmer-bar {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+  }
+  #loading-text {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: #8A6A55;
+    display: flex; align-items: center; gap: 6px;
+  }
+  #loading-text.found { color: #2e7d52; }
+  #loading-text i { font-size: 14px; }
+
+  /* ── sticky bottom ── */
+  #bottom-actions {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 16px 24px 28px;
+    background: linear-gradient(to top, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.82) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0 0 0 0;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #btn-continue {
+    width: 100%; height: 54px; border-radius: 99px;
+    background: linear-gradient(135deg, #9D4300 0%, #F77622 60%, #FE7B27 100%);
+    color: #fff; border: none; cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 16px;
+    letter-spacing: -0.2px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 6px 28px rgba(247,118,34,0.30);
+    transition: transform 0.14s, box-shadow 0.14s, opacity 0.3s;
+    position: relative; overflow: hidden;
+  }
+  #btn-continue:active { transform: scale(0.97); box-shadow: 0 3px 14px rgba(247,118,34,0.25); }
+  #btn-continue.pulse-glow {
+    animation: btn-pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes btn-pulse {
+    0%,100% { box-shadow: 0 6px 28px rgba(247,118,34,0.30); }
+    50%      { box-shadow: 0 8px 40px rgba(247,118,34,0.65), 0 0 0 8px rgba(247,118,34,0.10); }
+  }
+  #btn-continue .btn-arrow { transition: transform 0.2s; }
+  #btn-continue:hover .btn-arrow { transform: translateX(3px); }
+
+  #btn-browse {
+    background: none; border: none; cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: #8A6A55;
+    padding: 6px; text-align: center;
+    transition: color 0.15s;
+  }
+  #btn-browse:hover { color: #181C27; }
+
+  /* ── user dot on map ── */
+  .user-dot-outer {
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .user-pulse-ring {
+    position: absolute;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(247,118,34,0.25);
+    animation: pulse-ring 2s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.7); opacity: 0.7; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  .user-dot-inner {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #F77622;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(247,118,34,0.5);
+    position: relative; z-index: 1;
+  }
+
+  /* ── provider dot markers ── */
+  .provider-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #9D4300;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    transition: transform 0.3s;
+  }
+  .provider-dot:hover { transform: scale(1.5); }
+</style>
+</head>
+<body>
+
+<!-- ── MAP (floor) ── -->
+<div id="map"></div>
+<div id="map-overlay"></div>
+
+<!-- ── TOP BAR ── -->
+<header id="topbar">
+  <button id="topbar-back" onclick="goBack()" aria-label="Back">
+    <i class="ph-bold ph-arrow-left" style="font-size:18px;color:#F77622;"></i>
+  </button>
+  <div id="topbar-wordmark">Iskr<span>o</span>po</div>
+</header>
+
+<!-- ── BOTTOM SHEET ── -->
+<div id="sheet">
+  <div class="pull-handle"></div>
+
+  <div id="sheet-scroll">
+
+    <!-- Headline -->
+    <div id="headline">
+      <h1>I'm on it.</h1>
+      <p id="subtext">Let me read your request...</p>
+    </div>
+
+    <!-- Query input typewriter -->
+    <div id="query-box-wrap">
+      <div id="query-text-display">
+        <i class="ph-fill ph-sparkle"></i>
+        <span id="query-typewriter"></span><span class="cursor-blink" id="cursor"></span>
+      </div>
+    </div>
+
+    <!-- Parse label -->
+    <p id="parse-label">Parsing your request</p>
+
+    <!-- Chips -->
+    <div id="chips-row">
+      <div class="chip chip-service" id="chip-service">
+        <i class="ph-bold ph-t-shirt-folded" id="chip-service-icon"></i>
+        <span id="chip-service-label">Laundry</span>
+      </div>
+      <div class="chip chip-other" id="chip-when">
+        <i class="ph-bold ph-calendar"></i>
+        <span id="chip-when-label">Tomorrow</span>
+      </div>
+      <div class="chip chip-other" id="chip-budget">
+        <i class="ph-bold ph-currency-zar"></i>
+        <span id="chip-budget-label">R100</span>
+      </div>
+      <div class="chip chip-other" id="chip-location">
+        <i class="ph-bold ph-map-pin"></i>
+        <span id="chip-location-label">Sunnyside</span>
+      </div>
+    </div>
+
+    <!-- Refine section -->
+    <div id="refine-section">
+      <p id="refine-label">Refine your search</p>
+
+      <button class="refine-row" onclick="handleUseLocation()">
+        <div class="refine-icon">
+          <i class="ph-bold ph-crosshair-simple"></i>
+        </div>
+        <div class="refine-text">
+          <strong>Use my current location</strong>
+          <span>Pinpoint exactly where you are</span>
+        </div>
+        <i class="ph-bold ph-caret-right refine-chevron"></i>
+      </button>
+
+      <button class="refine-row" onclick="handleScheduleMorning()">
+        <div class="refine-icon">
+          <i class="ph-bold ph-sun"></i>
+        </div>
+        <div class="refine-text">
+          <strong>Schedule for morning</strong>
+          <span>Starts between 8:00 AM – 10:00 AM</span>
+        </div>
+        <i class="ph-bold ph-caret-right refine-chevron"></i>
+      </button>
+
+      <button class="refine-row" onclick="handleMatchAuto()">
+        <div class="refine-icon">
+          <i class="ph-bold ph-lightning"></i>
+        </div>
+        <div class="refine-text">
+          <strong>Match me automatically</strong>
+          <span>Instant booking with a top-rated pro</span>
+        </div>
+        <i class="ph-bold ph-caret-right refine-chevron"></i>
+      </button>
+    </div>
+
+    <!-- Loading bar -->
+    <div id="loading-section">
+      <div id="loading-track"><div id="loading-fill"></div></div>
+      <div id="loading-text">
+        <i class="ph-bold ph-magnifying-glass" id="loading-icon"></i>
+        <span id="loading-msg">Finding nearby providers...</span>
+      </div>
+    </div>
+
+  </div><!-- /sheet-scroll -->
+
+  <!-- Sticky bottom actions -->
+  <div id="bottom-actions">
+    <button id="btn-continue" onclick="navigateToProviders()">
+      Continue <span class="btn-arrow">→</span>
+    </button>
+    <button id="btn-browse" onclick="navigateToProviders()">Browse manually</button>
+  </div>
+</div><!-- /sheet -->
+
+
+<script>
+// ─────────────────────────────────────────────
+//  sessionStorage reads
+// ─────────────────────────────────────────────
+const query    = sessionStorage.getItem('iskropo_query')    || 'Laundry tomorrow under R100';
+const svcStore = sessionStorage.getItem('iskropo_service')  || null;
+const whenStore= sessionStorage.getItem('iskropo_when')     || null;
+const budgetStore = sessionStorage.getItem('iskropo_budget')|| null;
+const locationStore = sessionStorage.getItem('iskropo_location') || null;
+
+// ─────────────────────────────────────────────
+//  Parse query
+// ─────────────────────────────────────────────
+function parseQuery(q) {
+  const ql = q.toLowerCase();
+  let service = 'General Help', when = 'ASAP', budget = 'Flexible',
+      serviceIcon = 'ph-wrench', location = 'Sunnyside';
+
+  if (ql.includes('laundry') || ql.includes('wash')) {
+    service = 'Laundry'; serviceIcon = 'ph-t-shirt-folded';
+  } else if (ql.includes('hair') || ql.includes('cut') || ql.includes('barber')) {
+    service = 'Haircut'; serviceIcon = 'ph-scissors';
+  } else if (ql.includes('clean')) {
+    service = 'Cleaning'; serviceIcon = 'ph-broom';
+  } else if (ql.includes('fix') || ql.includes('repair') || ql.includes('handyman') || ql.includes('plumb')) {
+    service = 'Handyman'; serviceIcon = 'ph-wrench';
+  } else if (ql.includes('cook') || ql.includes('meal') || ql.includes('food')) {
+    service = 'Cooking'; serviceIcon = 'ph-cooking-pot';
+  } else if (ql.includes('garden') || ql.includes('lawn') || ql.includes('mow')) {
+    service = 'Gardening'; serviceIcon = 'ph-plant';
+  }
+
+  if (ql.includes('tomorrow'))       when = 'Tomorrow';
+  else if (ql.includes('today') || ql.includes('now') || ql.includes('urgent')) when = 'Today';
+  else if (ql.includes('morning'))   when = 'This morning';
+  else if (ql.includes('weekend'))   when = 'Weekend';
+  else if (ql.includes('friday'))    when = 'Friday';
+  else if (ql.includes('monday'))    when = 'Monday';
+
+  const bm = ql.match(/r\s*(\d+)/i);
+  if (bm) budget = 'R' + bm[1];
+
+  if (ql.includes('hatfield'))       location = 'Hatfield';
+  else if (ql.includes('arcadia'))   location = 'Arcadia';
+  else if (ql.includes('brooklyn'))  location = 'Brooklyn';
+  else if (ql.includes('pretoria'))  location = 'Pretoria';
+
+  return { service, when, budget, location, serviceIcon };
+}
+
+const parsed = parseQuery(query);
+// Prefer sessionStorage values if already set by screen 1
+const service  = svcStore    || parsed.service;
+const when     = whenStore   || parsed.when;
+const budget   = budgetStore || parsed.budget;
+const location = locationStore || parsed.location;
+const serviceIcon = parsed.serviceIcon;
+
+// ─────────────────────────────────────────────
+//  Populate chips
+// ─────────────────────────────────────────────
+document.getElementById('chip-service-label').textContent = service;
+document.getElementById('chip-service-icon').className    = `ph-bold ${serviceIcon}`;
+document.getElementById('chip-when-label').textContent    = when;
+document.getElementById('chip-budget-label').textContent  = budget;
+document.getElementById('chip-location-label').textContent = location;
+
+// ─────────────────────────────────────────────
+//  Leaflet map
+// ─────────────────────────────────────────────
+const SUNNYSIDE = [-25.7479, 28.2293];
+const map = L.map('map', {
+  center: SUNNYSIDE,
+  zoom: 15,
+  zoomControl: false,
+  attributionControl: false,
+  dragging: false,
+  scrollWheelZoom: false,
+  doubleClickZoom: false,
+  touchZoom: false,
+});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+}).addTo(map);
+
+// User dot (orange, pulsing)
+const userIcon = L.divIcon({
+  className: '',
+  html: `<div class="user-dot-outer"><div class="user-pulse-ring"></div><div class="user-dot-inner"></div></div>`,
+  iconSize:   [48, 48],
+  iconAnchor: [24, 24],
+});
+L.marker(SUNNYSIDE, { icon: userIcon, interactive: false }).addTo(map);
+
+// Provider dot positions scattered around center
+const providerOffsets = [
+  [ 0.0018,  0.0032],
+  [-0.0025,  0.0015],
+  [ 0.0010, -0.0028],
+  [-0.0015, -0.0020],
+  [ 0.0030, -0.0008],
+  [-0.0008,  0.0040],
+];
+
+const providerIcon = L.divIcon({
+  className: '',
+  html: `<div class="provider-dot"></div>`,
+  iconSize:   [10, 10],
+  iconAnchor: [5, 5],
+});
+
+function addProviderDot(idx) {
+  const off = providerOffsets[idx];
+  const pos = [SUNNYSIDE[0] + off[0], SUNNYSIDE[1] + off[1]];
+  L.marker(pos, { icon: providerIcon, interactive: false }).addTo(map);
+}
+
+// ─────────────────────────────────────────────
+//  Navigation helpers
+// ─────────────────────────────────────────────
+function navigateToProviders() {
+  sessionStorage.setItem('iskropo_provider_service', service);
+  sessionStorage.setItem('iskropo_provider_budget', budget);
+  sessionStorage.setItem('iskropo_provider_when', when);
+  sessionStorage.setItem('iskropo_provider_location', location);
+  window.location.href = '/providers';
+}
+
+function goBack() {
+  if (history.length > 1) history.back();
+  else window.location.href = '/';
+}
+
+function handleUseLocation() {
+  // Subtle feedback then continue
+  sessionStorage.setItem('iskropo_location_mode', 'gps');
+  navigateToProviders();
+}
+
+function handleScheduleMorning() {
+  sessionStorage.setItem('iskropo_when', 'This morning');
+  navigateToProviders();
+}
+
+function handleMatchAuto() {
+  sessionStorage.setItem('iskropo_match_mode', 'auto');
+  navigateToProviders();
+}
+
+// ─────────────────────────────────────────────
+//  Typewriter
+// ─────────────────────────────────────────────
+function typewrite(text, el, cursorEl, onDone) {
+  let i = 0;
+  const speed = Math.min(38, 700 / text.length); // adaptive speed
+  function tick() {
+    if (i < text.length) {
+      el.textContent = text.slice(0, ++i);
+      setTimeout(tick, speed);
+    } else {
+      if (cursorEl) {
+        setTimeout(() => { cursorEl.style.display = 'none'; }, 500);
+      }
+      if (onDone) onDone();
+    }
+  }
+  tick();
+}
+
+// ─────────────────────────────────────────────
+//  Animation sequence
+// ─────────────────────────────────────────────
+let autoAdvanceTimer = null;
+
+function runSequence() {
+  // 0ms: sheet slides up
+  requestAnimationFrame(() => {
+    setTimeout(() => document.getElementById('sheet').classList.add('visible'), 30);
+  });
+
+  // 400ms: show query box + typewriter
+  setTimeout(() => {
+    const wrap = document.getElementById('query-box-wrap');
+    wrap.classList.add('visible');
+    const twEl = document.getElementById('query-typewriter');
+    const cursor = document.getElementById('cursor');
+    typewrite(query, twEl, cursor, null);
+  }, 400);
+
+  // 1200ms: show parse label
+  setTimeout(() => {
+    document.getElementById('parse-label').classList.add('visible');
+    document.getElementById('subtext').textContent = 'Parsing your request...';
+  }, 1200);
+
+  // Chip stagger: 1400 / 1700 / 2000 / 2300
+  const chipIds = ['chip-service','chip-when','chip-budget','chip-location'];
+  const chipTimes = [1400, 1700, 2000, 2300];
+  chipTimes.forEach((t, i) => {
+    setTimeout(() => {
+      document.getElementById(chipIds[i]).classList.add('visible');
+      // add map dot when chip appears
+      if (i < providerOffsets.length) addProviderDot(i);
+    }, t);
+  });
+
+  // 2300: also add remaining 2 dots staggered
+  setTimeout(() => addProviderDot(4), 2450);
+  setTimeout(() => addProviderDot(5), 2600);
+
+  // 2600ms: refine section + loading bar shimmer
+  setTimeout(() => {
+    document.getElementById('refine-section').classList.add('visible');
+    const ls = document.getElementById('loading-section');
+    ls.classList.add('visible');
+    const fill = document.getElementById('loading-fill');
+    fill.classList.add('shimmer-anim');
+    document.getElementById('subtext').textContent = 'Finding nearby providers...';
+  }, 2600);
+
+  // 3800ms: fill to 100%, update text
+  setTimeout(() => {
+    const fill = document.getElementById('loading-fill');
+    fill.classList.remove('shimmer-anim');
+    fill.style.width = '100%';
+    fill.style.background = 'linear-gradient(90deg, #9D4300, #F77622, #FE7B27)';
+
+    const lt = document.getElementById('loading-text');
+    lt.classList.add('found');
+    document.getElementById('loading-icon').className = 'ph-bold ph-check-circle';
+    document.getElementById('loading-msg').textContent = 'Found 6 providers nearby ✓';
+    document.getElementById('subtext').textContent = 'Ready when you are.';
+  }, 3800);
+
+  // 4200ms: Continue button pulses
+  setTimeout(() => {
+    document.getElementById('btn-continue').classList.add('pulse-glow');
+  }, 4200);
+
+  // 5700ms: auto-advance
+  autoAdvanceTimer = setTimeout(() => {
+    navigateToProviders();
+  }, 5700);
+}
+
+// Cancel auto-advance if user taps Continue early
+document.getElementById('btn-continue').addEventListener('click', () => {
+  if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+});
+
+// Start on load
+window.addEventListener('load', () => {
+  setTimeout(runSequence, 80);
+});
+</script>
+</body>
+</html>
