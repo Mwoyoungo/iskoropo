@@ -6,820 +6,886 @@
 <title>Iskropo — Build Plan</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --orange:#F77622;--fire:#FE7B27;--deep:#9D4300;
+  --dark:#181C27;--card:#1E2333;--card2:#252B3B;
+  --muted:#8A6A55;--border:rgba(255,255,255,0.07);
+  --blue:#1A5FA8;--blue-mid:#0F3460;--blue-dark:#0B1D3A;
+  --green:#22c55e;--green-dim:rgba(34,197,94,0.12);
+  --s0:#F9F7F5;--s1:#F2EDE8;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Manrope',sans-serif;background:var(--dark);color:var(--s0);min-height:100vh;}
 
-:root {
-  --orange:   #F77622;
-  --deep:     #9D4300;
-  --fire:     #FE7B27;
-  --dark:     #181C27;
-  --muted:    #8A6A55;
-  --blue:     #1A5FA8;
-  --blue-mid: #0F3460;
-  --blue-dark:#0B1D3A;
-  --green:    #22c55e;
-  --green-bg: #dcfce7;
-  --s0:       #F9F7F5;
-  --s1:       #F2EDE8;
-  --s2:       #E8E0D8;
-  --error:    #BA1A1A;
-}
+/* HEADER */
+header{background:linear-gradient(155deg,var(--blue-dark) 0%,var(--blue-mid) 50%,var(--blue) 100%);padding:48px 24px 36px;position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:rgba(56,139,253,0.10);filter:blur(90px);top:-120px;right:-100px;pointer-events:none;}
+.h-inner{max-width:980px;margin:0 auto;position:relative;}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;text-decoration:none;margin-bottom:22px;transition:color .15s;}
+.back-link:hover{color:#fff;}
+.back-link svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+h1{font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.03em;color:#fff;line-height:1.05;}
+h1 em{color:var(--orange);font-style:normal;}
+.h-sub{margin-top:10px;font-size:14px;color:rgba(255,255,255,0.5);font-weight:500;max-width:500px;line-height:1.65;}
+.h-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;}
+.h-pill{display:flex;align-items:center;gap:6px;padding:6px 13px;background:rgba(255,255,255,0.09);border-radius:999px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.65);backdrop-filter:blur(8px);}
 
-html { scroll-behavior: smooth; }
+/* PROGRESS */
+.prog-bar-wrap{background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border);padding:16px 24px;}
+.prog-bar-inner{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:14px;}
+.prog-lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);white-space:nowrap;}
+.prog-track{flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--fire));border-radius:999px;transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.prog-count{font-size:12px;font-weight:700;color:var(--orange);white-space:nowrap;}
 
-body {
-  font-family: 'Manrope', sans-serif;
-  background: var(--dark);
-  color: var(--s0);
-  min-height: 100vh;
-}
+/* MAIN */
+main{max-width:980px;margin:0 auto;padding:40px 24px 80px;}
 
-/* ── HEADER ── */
-header {
-  background: linear-gradient(155deg, var(--blue-dark) 0%, var(--blue-mid) 50%, var(--blue) 100%);
-  padding: 48px 24px 40px;
-  position: relative;
-  overflow: hidden;
-}
-header::before {
-  content: '';
-  position: absolute;
-  width: 400px; height: 400px;
-  border-radius: 50%;
-  background: rgba(56,139,253,0.12);
-  filter: blur(80px);
-  top: -100px; right: -80px;
-  pointer-events: none;
-}
-.header-inner {
-  max-width: 860px;
-  margin: 0 auto;
-  position: relative;
-}
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: rgba(255,255,255,0.6);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  margin-bottom: 24px;
-  transition: color 0.15s;
-}
-.back-link:hover { color: #fff; }
-.back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+/* PHASE HEADER */
+.phase{margin-bottom:52px;}
+.phase-hd{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.phase-num{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--orange),var(--fire));display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:14px;color:#fff;flex-shrink:0;}
+.phase-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:19px;letter-spacing:-.02em;color:#fff;}
+.phase-badge{margin-left:auto;padding:4px 12px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0;}
+.b-active{background:rgba(247,118,34,.15);color:var(--orange);}
+.b-soon{background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);}
+.b-done{background:var(--green-dim);color:var(--green);}
+.phase-desc{font-size:13px;color:rgba(255,255,255,.35);font-weight:500;margin-left:46px;margin-bottom:20px;line-height:1.6;}
 
-h1 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 900;
-  font-size: clamp(2rem, 5vw, 3rem);
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-  color: #fff;
-}
-h1 span { color: var(--orange); }
+/* TWO-COL LAYOUT */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:680px){.two-col{grid-template-columns:1fr;}}
+.col-header{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
-.header-sub {
-  margin-top: 10px;
-  font-size: 15px;
-  color: rgba(255,255,255,0.55);
-  font-weight: 500;
-  max-width: 520px;
-  line-height: 1.6;
-}
+/* MILESTONE CARD */
+.ms{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+.ms.done{border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.03);}
+.ms-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;transition:background .15s;}
+.ms-head:hover{background:rgba(255,255,255,.03);}
+.ms-check{width:22px;height:22px;border-radius:7px;border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s;}
+.ms.done .ms-check{background:var(--green);border-color:var(--green);}
+.ms-check svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .2s;}
+.ms.done .ms-check svg{opacity:1;}
+.ms-title{flex:1;font-size:14px;font-weight:700;color:#fff;line-height:1.35;transition:color .2s;}
+.ms.done .ms-title{color:rgba(255,255,255,.35);text-decoration:line-through;}
+.ms-arrow{width:16px;height:16px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .3s;}
+.ms.open .ms-arrow{transform:rotate(180deg);}
 
-.header-meta {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-top: 28px;
-}
-.meta-pill {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  background: rgba(255,255,255,0.10);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.75);
-  backdrop-filter: blur(8px);
-}
-.meta-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+/* DROPDOWN BODY */
+.ms-body{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);}
+.ms-body-inner{padding:0 16px 16px;}
+.ms-explain{font-size:13px;color:rgba(255,255,255,.5);font-weight:500;line-height:1.75;background:rgba(255,255,255,.03);border-radius:10px;padding:12px 14px;margin-bottom:14px;border-left:3px solid var(--orange);}
+.substeps-label{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:8px;}
+.substep{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:4px;}
+.substep:hover{background:rgba(255,255,255,.04);}
+.sub-check{width:18px;height:18px;border-radius:5px;border:2px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background .2s,border-color .2s;}
+.substep.done .sub-check{background:var(--green);border-color:var(--green);}
+.sub-check svg{width:9px;height:9px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s;}
+.substep.done .sub-check svg{opacity:1;}
+.sub-txt{font-size:13px;font-weight:500;color:rgba(255,255,255,.55);line-height:1.45;transition:color .2s;}
+.substep.done .sub-txt{color:rgba(255,255,255,.2);text-decoration:line-through;}
 
-/* ── PROGRESS SUMMARY ── */
-.progress-bar-section {
-  background: rgba(255,255,255,0.05);
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 20px 24px;
-}
-.progress-bar-inner {
-  max-width: 860px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.prog-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.5);
-  white-space: nowrap;
-}
-.prog-track {
-  flex: 1;
-  height: 6px;
-  background: rgba(255,255,255,0.10);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.prog-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--orange), var(--fire));
-  border-radius: 999px;
-  transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
-}
-.prog-count {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--orange);
-  white-space: nowrap;
-}
+/* TAGS */
+.ms-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;}
+.tag{padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;}
+.t-flutter{background:rgba(83,136,236,.15);color:#6fa3ff;}
+.t-ai{background:rgba(247,118,34,.15);color:var(--orange);}
+.t-backend{background:rgba(168,85,247,.15);color:#c084fc;}
+.t-ui{background:rgba(34,197,94,.12);color:#4ade80;}
+.t-firebase{background:rgba(255,196,0,.12);color:#fcd34d;}
 
-/* ── MAIN CONTENT ── */
-main {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
-}
+/* DIVIDER */
+.div{height:1px;background:var(--border);margin:36px 0;}
 
-/* ── PHASE BLOCK ── */
-.phase {
-  margin-bottom: 48px;
-}
-.phase-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.phase-number {
-  width: 32px; height: 32px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--orange), var(--fire));
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 900;
-  font-size: 14px;
-  color: #fff;
-  flex-shrink: 0;
-}
-.phase-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 900;
-  font-size: 20px;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-.phase-badge {
-  margin-left: auto;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.badge-active    { background: rgba(247,118,34,0.15); color: var(--orange); }
-.badge-upcoming  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4); }
-.badge-done      { background: var(--green-bg); color: #166534; }
+/* NOTES */
+.note{border-radius:16px;padding:18px 20px;margin-bottom:12px;}
+.note-orange{background:rgba(247,118,34,.07);border:1px solid rgba(247,118,34,.15);}
+.note-blue{background:rgba(56,139,253,.07);border:1px solid rgba(56,139,253,.15);}
+.note-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;margin-bottom:10px;}
+.note-orange .note-title{color:var(--orange);}
+.note-blue .note-title{color:#6fa3ff;}
+.note-body{font-size:13px;color:rgba(255,255,255,.5);line-height:1.75;font-weight:500;}
+.note-body strong{color:rgba(255,255,255,.8);font-weight:700;}
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px;}
+.stack-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.stack-emoji{font-size:22px;margin-bottom:6px;}
+.stack-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;color:#fff;margin-bottom:3px;}
+.stack-desc{font-size:11px;color:rgba(255,255,255,.4);font-weight:500;line-height:1.5;}
 
-/* ── SERVICE SECTION ── */
-.service-section {
-  margin-bottom: 32px;
-}
-.service-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-  margin-bottom: 12px;
-}
-.service-label-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* ── MILESTONE CARD ── */
-.milestone {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
-  background: rgba(255,255,255,0.04);
-  border-radius: 16px;
-  margin-bottom: 8px;
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: background 0.2s, border-color 0.2s;
-  cursor: pointer;
-  user-select: none;
-}
-.milestone:hover { background: rgba(255,255,255,0.07); }
-.milestone.done {
-  background: rgba(34,197,94,0.06);
-  border-color: rgba(34,197,94,0.15);
-}
-.milestone.done .m-title { text-decoration: line-through; color: rgba(255,255,255,0.35); }
-.milestone.done .m-desc  { color: rgba(255,255,255,0.2); }
-
-.checkbox {
-  width: 22px; height: 22px;
-  border-radius: 7px;
-  border: 2px solid rgba(255,255,255,0.15);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: background 0.2s, border-color 0.2s;
-}
-.milestone.done .checkbox {
-  background: var(--green);
-  border-color: var(--green);
-}
-.checkbox svg {
-  width: 12px; height: 12px;
-  stroke: #fff; fill: none;
-  stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.milestone.done .checkbox svg { opacity: 1; }
-
-.m-body { flex: 1; min-width: 0; }
-.m-title {
-  font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  color: #fff;
-  line-height: 1.3;
-  transition: color 0.2s;
-}
-.m-desc {
-  font-size: 12px;
-  color: rgba(255,255,255,0.4);
-  font-weight: 500;
-  margin-top: 3px;
-  line-height: 1.5;
-  transition: color 0.2s;
-}
-.m-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 8px;
-}
-.tag {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-.tag-flutter  { background: rgba(83,136,236,0.15); color: #6fa3ff; }
-.tag-ai       { background: rgba(247,118,34,0.15); color: var(--orange); }
-.tag-backend  { background: rgba(168,85,247,0.15); color: #c084fc; }
-.tag-ui       { background: rgba(34,197,94,0.12);  color: #4ade80; }
-.tag-both     { background: rgba(251,191,36,0.12); color: #fbbf24; }
-
-/* ── DIVIDER ── */
-.divider {
-  height: 1px;
-  background: rgba(255,255,255,0.07);
-  margin: 32px 0;
-}
-
-/* ── NOTES SECTION ── */
-.notes-block {
-  background: rgba(247,118,34,0.07);
-  border: 1px solid rgba(247,118,34,0.15);
-  border-radius: 16px;
-  padding: 18px 20px;
-  margin-bottom: 12px;
-}
-.notes-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--orange);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.notes-title svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.notes-body {
-  font-size: 13px;
-  color: rgba(255,255,255,0.55);
-  line-height: 1.7;
-  font-weight: 500;
-}
-.notes-body strong { color: rgba(255,255,255,0.8); font-weight: 700; }
-
-/* ── LAST UPDATED ── */
-.last-updated {
-  text-align: center;
-  font-size: 11px;
-  color: rgba(255,255,255,0.2);
-  font-weight: 600;
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-#last-updated-date { color: rgba(255,255,255,0.4); }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 600px) {
-  header { padding: 36px 18px 32px; }
-  main { padding: 28px 18px 60px; }
-}
+.footer{text-align:center;font-size:11px;color:rgba(255,255,255,.2);font-weight:600;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);}
+.footer span{color:rgba(255,255,255,.35);}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
-  <div class="header-inner">
+  <div class="h-inner">
     <a class="back-link" href="/">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       Back to app
     </a>
-    <h1>'Skoropo <span>Build Plan</span></h1>
-    <p class="header-sub">Living project spec for the Iskropo gig platform. Tick features as they ship. Stack: Flutter (mobile) + Node/Supabase (backend) + Gemini AI.</p>
-    <div class="header-meta">
-      <div class="meta-pill">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Started: 26 March 2026
-      </div>
-      <div class="meta-pill">
-        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Phase 1 — Active
-      </div>
-      <div class="meta-pill">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Customer + Provider sides
-      </div>
+    <h1>'Skoropo <em>Build Plan</em></h1>
+    <p class="h-sub">Living project roadmap. Written in plain English for everyone on the team. Tick features as they ship.</p>
+    <div class="h-pills">
+      <div class="h-pill">📅 Starts 26 March 2026</div>
+      <div class="h-pill">📱 Flutter App</div>
+      <div class="h-pill">🔥 Firebase Backend</div>
+      <div class="h-pill">⚡ Fastify Server</div>
+      <div class="h-pill">🧠 Gemini AI</div>
     </div>
   </div>
 </header>
 
-<!-- PROGRESS BAR -->
-<div class="progress-bar-section">
-  <div class="progress-bar-inner">
-    <span class="prog-label">Overall progress</span>
-    <div class="prog-track">
-      <div class="prog-fill" id="prog-fill" style="width:0%"></div>
-    </div>
+<div class="prog-bar-wrap">
+  <div class="prog-bar-inner">
+    <span class="prog-lbl">Overall progress</span>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
     <span class="prog-count" id="prog-count">0 / 0 done</span>
   </div>
 </div>
 
-<!-- MAIN -->
 <main>
 
-  <!-- ═══════════════════════════════════ PHASE 1 -->
-  <div class="phase">
-    <div class="phase-header">
-      <div class="phase-number">1</div>
-      <div class="phase-title">Foundation — Laundry Service (Customer Side)</div>
-      <span class="phase-badge badge-active">Active</span>
+<!-- ══════════════════════════════ PHASE 1+2: LAUNDRY -->
+<div class="phase">
+  <div class="phase-hd">
+    <div class="phase-num">1</div>
+    <div class="phase-title">Laundry Service</div>
+    <span class="phase-badge b-active">Active</span>
+  </div>
+  <p class="phase-desc">The first service to build. A customer can book laundry pickup, washing, and delivery — while the provider manages everything from their phone.</p>
+
+  <div class="two-col">
+    <!-- CUSTOMER SIDE -->
+    <div>
+      <div class="col-header"><div class="col-dot" style="background:#F77622;"></div> 👤 Customer Journey</div>
+
+      <!-- M1 -->
+      <div class="ms" id="ms-1">
+        <div class="ms-head" onclick="toggleMs('ms-1')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer opens app and taps Laundry</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">When the customer opens the app, they see the home screen with service options. They tap "Laundry" and are taken straight into the laundry booking flow. Think of it like tapping a category on Uber Eats — one tap and you're in.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Home screen shows Laundry as a service category with an icon</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Tapping Laundry navigates to the laundry intake screen</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Intake screen has a friendly headline and a Start button</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-ui">UI</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M2 -->
+      <div class="ms" id="ms-2">
+        <div class="ms-head" onclick="toggleMs('ms-2')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer says how much laundry they have</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Instead of typing or guessing, the customer sees three big picture cards on screen — Small (1–2 bags), Medium (3–4 bags), and Large (5+ bags). Each card shows the price range so they know what to expect before they even confirm. They just tap the one that matches their pile. No typing, no weighing, no confusion.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Three visual cards shown: Small / Medium / Large with illustrations</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Each card shows price range in Rands (e.g. R60–R80)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Tapping a card highlights it and enables the Next button</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Selected bag size saved so it can be used for pricing</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-ui">UI</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M3 -->
+      <div class="ms" id="ms-3">
+        <div class="ms-head" onclick="toggleMs('ms-3')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer selects any special items</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Some clothes need extra care — delicates can't be washed on a normal cycle, white clothes need to be separated so they don't go grey, duvets take more space and time. The customer ticks any special items they have. Each one adds a small extra fee that shows up instantly on screen, so there are never any surprise charges at the end.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Special items displayed as tappable chips (can select multiple)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Items include: Delicates, Whites, Duvets, Baby clothes, Work uniforms</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Price estimate updates live as items are selected or deselected</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Selection saved so the provider sees exactly what to expect</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-ui">UI</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M4 -->
+      <div class="ms" id="ms-4">
+        <div class="ms-head" onclick="toggleMs('ms-4')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer picks a time + ironing upsell</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The customer chooses when they want the laundry collected — Today, Tomorrow, or a specific date they pick from a calendar. Then the app shows one simple question: "Add ironing? +R30." This only appears for medium and large loads — ironing two t-shirts doesn't make sense, so we don't offer it for small loads. The final estimated price is shown clearly before they move on.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Time options: Today / Tomorrow / Pick a date (calendar picker)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Ironing toggle only shows for Medium and Large load sizes</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Final price estimate displayed prominently before proceeding</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Schedule and ironing preference saved for provider briefing</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-ui">UI</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M5 -->
+      <div class="ms" id="ms-5">
+        <div class="ms-head" onclick="toggleMs('ms-5')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">AI summary — customer confirms before booking</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Before any money moves, the customer sees a clear plain-English summary of everything they've selected. Something like: "3–4 bags of laundry, whites washed separately, ironing included, collected tomorrow — estimated R130 to R160." The AI takes their answers and writes this in a way that's easy to read. If something is wrong, they can go back and fix it. If everything looks good, they tap Confirm and get matched with a provider.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Summary card shows all selections in friendly plain words</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Price range displayed prominently in large text</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Edit button lets customer go back and change any selection</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Gemini AI call generates the natural-language summary text</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Confirm button moves to provider matching screen</span></div>
+            <div class="ms-tags"><span class="tag t-ai">AI</span><span class="tag t-flutter">Flutter</span><span class="tag t-backend">Fastify</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M6 -->
+      <div class="ms" id="ms-6">
+        <div class="ms-head" onclick="toggleMs('ms-6')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer matched with a nearby provider</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The app automatically finds the best available laundry provider nearby. It looks at distance, their star rating, whether they're free on the chosen day, and whether their price fits the customer's budget. The customer sees the provider's name, photo, rating, price, and how far they are. They can also see a second option if they're not happy with the first match.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Server finds providers matching service, location, date, and budget</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Best match shown: name, rating, price, ETA in minutes</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">"See another option" button cycles through next best matches</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Confirm Request button locks in the chosen provider</span></div>
+            <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-firebase">Firebase</span><span class="tag t-flutter">Flutter</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M7 -->
+      <div class="ms" id="ms-7">
+        <div class="ms-head" onclick="toggleMs('ms-7')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer pays to confirm the booking</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The customer pays by card or instant bank transfer. Here's the important part — the money is held securely and NOT given to the provider yet. It's only released once the laundry is delivered back and the customer confirms everything is good. This protects the customer if something goes wrong, and ensures the provider gets paid once they complete the job properly.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Paystack payment screen (card + instant EFT options)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Payment held — not released until job is confirmed complete</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Booking confirmation screen shown with reference number</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">SMS and push notification sent to confirm booking</span></div>
+            <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-flutter">Flutter</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M8 -->
+      <div class="ms" id="ms-8">
+        <div class="ms-head" onclick="toggleMs('ms-8')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer tracks their laundry live</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The customer can follow their laundry's journey on a map, just like tracking a delivery. The status updates automatically as the provider moves through each stage. A notification is sent at every stage change so the customer doesn't need to keep the app open — they'll know exactly what's happening without having to check.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Live map showing provider's dot moving toward customer</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Status bar: Confirmed → Collected → Washing → Delivering → Done</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Push notification sent automatically at each status change</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">In-app chat button to message the provider directly</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- M9 -->
+      <div class="ms" id="ms-9">
+        <div class="ms-head" onclick="toggleMs('ms-9')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer rates the service</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">After the laundry is delivered, the customer gets a simple rating prompt. They give stars and can leave a comment if they want. This rating directly affects how often that provider appears in future matches — great providers get more work, poor ones get fewer bookings. It keeps quality high across the platform.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Rating screen appears after delivery is confirmed</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Star rating (1–5) with optional written comment</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Rating saved to Firebase and updates provider's score</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Optional tip button for exceptional service</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="service-section">
-      <div class="service-label">
-        <div class="service-label-dot" style="background:#F77622;"></div>
-        Intake Flow
-      </div>
+    <!-- PROVIDER SIDE -->
+    <div>
+      <div class="col-header"><div class="col-dot" style="background:#c084fc;"></div> 🔧 Provider Journey</div>
 
-      <div class="milestone" data-id="1" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Laundry home screen — service entry point</div>
-          <div class="m-desc">Tap "Laundry" on home routes to /laundry. Branded screen with bag illustration, headline, and Start button.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-ui">UI</span></div>
+      <!-- P1 -->
+      <div class="ms" id="ms-p1">
+        <div class="ms-head" onclick="toggleMs('ms-p1')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Provider sets up their laundry profile</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Before a provider can receive any jobs, they go through a quick setup. They say they offer laundry, set their prices for small, medium, and large loads, add surcharges for special items, and draw their delivery area on a map. They also upload a photo of their ID — this is how Iskropo makes sure everyone on the platform is legitimate and trustworthy.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Provider selects Laundry as their service offering</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Sets price per bag size (within Iskropo's allowed range)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Sets surcharges for special items (delicates, duvets, etc.)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Draws or selects their service area on a map</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Uploads ID photo for Iskropo verification</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
         </div>
       </div>
 
-      <div class="milestone" data-id="2" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Step 1 — Bag size selector</div>
-          <div class="m-desc">3 visual cards: Small (1–2 bags, R60–80), Medium (3–4 bags, R90–120), Large (5+ bags, R130–180). Tappable, single select.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-ui">UI</span></div>
+      <!-- P2 -->
+      <div class="ms" id="ms-p2">
+        <div class="ms-head" onclick="toggleMs('ms-p2')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Provider gets notified of a new job</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The moment a customer books nearby, the provider's phone makes a loud notification sound. They see a card with all the job details — how many bags, any special items, whether ironing is needed, the customer's address, and exactly how much they'll earn. They have 90 seconds to decide. If they accept, the job is theirs. If they decline or don't respond, it automatically goes to the next available provider.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Firebase push notification fires immediately when job is matched</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Job card shows bag size, special items, ironing, address, earnings</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">90-second countdown timer visible on screen</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Accept → active job screen; Decline → job offered to next provider</span></div>
+            <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-firebase">Firebase</span><span class="tag t-flutter">Flutter</span></div>
+          </div>
         </div>
       </div>
 
-      <div class="milestone" data-id="3" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Step 2 — Special items selector</div>
-          <div class="m-desc">Multi-select chips: Delicates, Whites, Duvets/Bedding, Baby clothes, Work uniforms. Each adds a price increment shown in real time.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-ui">UI</span></div>
+      <!-- P3 -->
+      <div class="ms" id="ms-p3">
+        <div class="ms-head" onclick="toggleMs('ms-p3')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Provider manages job stages on their phone</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Once a job is accepted, the provider's screen shows big clear buttons to tap as the job moves forward: On my way → I've collected the laundry → Currently washing → Out for delivery → Done. Each tap instantly updates what the customer sees on their phone. The customer always knows where their laundry is without having to call or message.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Status buttons: On my way / Collected / Washing / Delivering / Done</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Each tap updates customer tracking screen in real time</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Provider location shared live with customer during collection and delivery</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Chat button lets provider message the customer from the job screen</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
         </div>
       </div>
 
-      <div class="milestone" data-id="4" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Step 3 — Schedule + ironing upsell</div>
-          <div class="m-desc">Today / Tomorrow / Pick date selector. Ironing toggle (+R30) shown contextually only for Medium/Large loads. Price estimate updates live.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-ui">UI</span></div>
+      <!-- P4 -->
+      <div class="ms" id="ms-p4">
+        <div class="ms-head" onclick="toggleMs('ms-p4')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Provider gets paid after delivery</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Once the customer confirms their laundry was delivered, the payment that was held since booking is automatically released. Iskropo's commission is deducted automatically — the provider can see exactly what was taken and why. The rest goes straight into their Iskropo wallet. They can request a bank payout at any time, and it arrives within one business day.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Payment auto-released when customer confirms delivery</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Iskropo commission shown transparently (provider sees the breakdown)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Wallet balance updates immediately in provider app</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Payout request sends money to provider's registered bank account</span></div>
+            <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-firebase">Firebase</span><span class="tag t-flutter">Flutter</span></div>
+          </div>
         </div>
       </div>
 
-      <div class="milestone" data-id="5" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">AI summary card</div>
-          <div class="m-desc">Gemini API call structures intake data into a human-readable summary with confirmed price range. Shows "3–4 bags, whites separate, ironing included — R130–160". User confirms before matching.</div>
-          <div class="m-tags"><span class="tag tag-ai">AI</span><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
+      <!-- P5 -->
+      <div class="ms" id="ms-p5">
+        <div class="ms-head" onclick="toggleMs('ms-p5')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Provider identity verification</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-      </div>
-    </div>
-
-    <div class="service-section">
-      <div class="service-label">
-        <div class="service-label-dot" style="background:#388BFD;"></div>
-        Matching + Booking
-      </div>
-
-      <div class="milestone" data-id="6" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Provider matching — laundry-specific filters</div>
-          <div class="m-desc">Filter providers by: offers laundry, within radius, available on selected date, price fits budget. Rank by rating + proximity.</div>
-          <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-ai">AI</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="7" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Booking confirmation + payment intent</div>
-          <div class="m-desc">Confirm screen shows provider, final price, and pickup time. Payment captured via Paystack/Flutterwave (hold, not charge — charged on completion).</div>
-          <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="8" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Live tracking — pickup + delivery</div>
-          <div class="m-desc">Two tracking stages: provider coming to collect, then provider delivering back. Progress: Confirmed → Collected → Washing → Out for delivery → Delivered.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="9" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Rating + review after delivery</div>
-          <div class="m-desc">Post-delivery prompt: star rating + optional comment. Feeds provider score. Optional photo of returned laundry.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Every single provider must be verified by Iskropo before they can appear in any customer's search. They upload their ID and take a selfie. The Iskropo admin reviews both within 24 hours. If approved, the provider gets a blue verified badge on their profile that customers can see — this is a trust signal. Unverified providers are completely hidden from customers.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">ID upload screen during provider onboarding</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Selfie capture step for face verification</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Admin dashboard shows all pending verifications in a queue</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Approved providers get verified badge; rejected get a clear reason</span></div>
+            <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-firebase">Firebase</span><span class="tag t-flutter">Flutter</span></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="divider"></div>
+<div class="div"></div>
 
-  <!-- ═══════════════════════════════════ PHASE 2 -->
-  <div class="phase">
-    <div class="phase-header">
-      <div class="phase-number">2</div>
-      <div class="phase-title">Foundation — Laundry Service (Provider Side)</div>
-      <span class="phase-badge badge-upcoming">Upcoming</span>
+<!-- ══════════════════════════════ PHASE 3: BARBER -->
+<div class="phase">
+  <div class="phase-hd">
+    <div class="phase-num">2</div>
+    <div class="phase-title">Barber Service</div>
+    <span class="phase-badge b-soon">Upcoming</span>
+  </div>
+  <p class="phase-desc">Mobile barbers come to the customer. Customer browses a style catalogue and books a barber who specialises in their chosen look.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="col-header"><div class="col-dot" style="background:#F77622;"></div> 👤 Customer Journey</div>
+
+      <div class="ms" id="ms-b1">
+        <div class="ms-head" onclick="toggleMs('ms-b1')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer browses the hairstyle catalogue</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The customer opens the Barber section and sees a visual gallery of hairstyle options — fades, shape-ups, dreads, braids, and more. Every style has a real photo, a name, a price range, and how long it takes. They can filter by hair type. Tapping a style shows more photos and lets them select it.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Hairstyle catalogue grid with photos, names, price ranges</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Filter by hair type (natural, locs, straight, etc.)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Tap style to see detail view and select</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-ui">UI</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ms" id="ms-b2">
+        <div class="ms-head" onclick="toggleMs('ms-b2')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">AI suggests styles for the occasion</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Before browsing, the app asks one quick optional question: "What's the occasion?" — Casual, Going out, Work, or Special event. Based on the answer, it highlights the top 3 recommended styles. The customer can skip this entirely and browse everything if they already know what they want.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Occasion prompt screen with 4 options (skippable)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">AI returns top 3 recommended styles for the occasion</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Recommended styles shown with a badge at top of catalogue</span></div>
+            <div class="ms-tags"><span class="tag t-ai">AI</span><span class="tag t-flutter">Flutter</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ms" id="ms-b3">
+        <div class="ms-head" onclick="toggleMs('ms-b3')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer books a barber</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Once a style is chosen, the app shows barbers nearby who know how to do that specific cut. Each barber's profile shows their portfolio — real photos of haircuts they've done. The customer picks a date and time, confirms their address for the home visit, and books.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Barbers filtered by: offers selected style, available, nearby</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Portfolio photos shown per barber</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Date + time picker, location pin for home visit</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-backend">Fastify</span></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="service-section">
-      <div class="service-label">
-        <div class="service-label-dot" style="background:#c084fc;"></div>
-        Provider Dashboard
-      </div>
+    <div>
+      <div class="col-header"><div class="col-dot" style="background:#c084fc;"></div> 🔧 Provider Journey</div>
 
-      <div class="milestone" data-id="10" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Provider profile setup — laundry</div>
-          <div class="m-desc">Provider sets: services offered (laundry ✓), pricing per bag size, special item surcharges, service radius, availability schedule.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
+      <div class="ms" id="ms-bp1">
+        <div class="ms-head" onclick="toggleMs('ms-bp1')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Barber builds their profile and portfolio</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">Barbers set up their profile by selecting which styles they offer from the catalogue, uploading photos of actual haircuts they've done, setting their price per style, and choosing which areas they travel to. At least 3 portfolio photos are required before they can go live — this is what customers use to decide if they want to book them.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Barber selects styles they offer from the shared catalogue</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Portfolio upload (min 3 photos required to go live)</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Price per style and travel radius settings</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
         </div>
       </div>
 
-      <div class="milestone" data-id="11" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Incoming job request screen</div>
-          <div class="m-desc">Push notification + in-app card showing: customer name, bag size, special items, ironing, address, price, time. Accept / Decline with 90-second timer.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
+      <div class="ms" id="ms-bp2">
+        <div class="ms-head" onclick="toggleMs('ms-bp2')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Barber manages the job on their phone</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-      </div>
-
-      <div class="milestone" data-id="12" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Job status management</div>
-          <div class="m-desc">Provider taps through: On my way → Collected → Washing → Out for delivery → Done. Each tap triggers real-time update to customer.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="13" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Earnings + wallet screen</div>
-          <div class="m-desc">Shows: today's earnings, pending payouts, job history, Iskropo commission deducted (visible and transparent). Request payout button.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="14" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Provider verification flow</div>
-          <div class="m-desc">Upload ID + proof of address. Admin reviews and approves. Verified badge unlocked. Unverified providers hidden from matching.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">When a job comes in, the barber gets a notification with the customer's name, chosen style, address, and earnings. They tap through: On my way → Arrived → Cutting → Done. The customer only confirms done when they're happy with the cut — this releases the payment to the barber.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Job notification with style name, address, and earnings shown</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Status flow: On my way / Arrived / Cutting / Done</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Customer confirms completion before payment releases</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="divider"></div>
+<div class="div"></div>
 
-  <!-- ═══════════════════════════════════ PHASE 3 -->
-  <div class="phase">
-    <div class="phase-header">
-      <div class="phase-number">3</div>
-      <div class="phase-title">Barber Service — Customer + Provider</div>
-      <span class="phase-badge badge-upcoming">Upcoming</span>
+<!-- ══════════════════════════════ PHASE 4: CAR WASH -->
+<div class="phase">
+  <div class="phase-hd">
+    <div class="phase-num">3</div>
+    <div class="phase-title">Mobile Car Wash</div>
+    <span class="phase-badge b-soon">Upcoming</span>
+  </div>
+  <p class="phase-desc">A washer comes to wherever the customer's car is parked. Before and after photos protect both sides.</p>
+
+  <div class="two-col">
+    <div>
+      <div class="col-header"><div class="col-dot" style="background:#F77622;"></div> 👤 Customer Journey</div>
+
+      <div class="ms" id="ms-c1">
+        <div class="ms-head" onclick="toggleMs('ms-c1')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Customer picks car type and wash package</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The customer selects their car size (hatchback, sedan, SUV, or bakkie) and the package they want — just the outside, a full wash, or a full wash plus vacuuming the inside. The price is set automatically. Then they drop a pin on the map showing exactly where their car is parked right now.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Car size selector: hatchback / sedan / SUV / bakkie</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Package: Exterior only / Full wash / Full + interior vacuum</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Price auto-calculated and shown clearly</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Map pin drop: where is the car parked right now</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-ui">UI</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ms" id="ms-c2">
+        <div class="ms-head" onclick="toggleMs('ms-c2')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Before and after photo confirmation</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">When the washer arrives, they take a photo of the car before starting — so there's proof of what the car looked like before they touched it. When they're done, they take an after photo. The customer sees both photos side by side in the app before they confirm the job is done and release payment. This prevents any argument about whether the car was actually washed.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Customer receives before photo when washer arrives</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Customer receives after photo when wash is complete</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Side-by-side before/after view before confirming payment</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="service-section">
-      <div class="service-label">
-        <div class="service-label-dot" style="background:#F77622;"></div>
-        Customer Side
-      </div>
+    <div>
+      <div class="col-header"><div class="col-dot" style="background:#c084fc;"></div> 🔧 Provider Journey</div>
 
-      <div class="milestone" data-id="15" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Style catalogue — browse + select haircut</div>
-          <div class="m-desc">Visual grid of hairstyle options with names, photos, and price ranges. Filter by hair type. AI-written descriptions per style.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-ai">AI</span><span class="tag tag-ui">UI</span></div>
+      <div class="ms" id="ms-cp1">
+        <div class="ms-head" onclick="toggleMs('ms-cp1')">
+          <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="ms-title">Washer takes before + after photos</div>
+          <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-      </div>
-
-      <div class="milestone" data-id="16" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Occasion-aware suggestion</div>
-          <div class="m-desc">"What's the occasion?" prompt (casual, event, work, wedding). AI suggests top 3 styles based on answer. Skippable.</div>
-          <div class="m-tags"><span class="tag tag-ai">AI</span><span class="tag tag-flutter">Flutter</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="17" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Booking + barber matching</div>
-          <div class="m-desc">Match barbers who offer selected style. Show portfolio photos from past jobs. Book with date/time + location (home visit or barber comes to you).</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="service-section">
-      <div class="service-label">
-        <div class="service-label-dot" style="background:#c084fc;"></div>
-        Provider Side
-      </div>
-
-      <div class="milestone" data-id="18" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Barber profile — styles + portfolio</div>
-          <div class="m-desc">Barber lists styles they offer, uploads portfolio photos, sets pricing per style, adds travel radius and availability.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="19" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Job flow — arrive, cut, done</div>
-          <div class="m-desc">Status taps: On my way → Arrived → Job started → Done. Customer confirms completion before payment releases.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
+        <div class="ms-body">
+          <div class="ms-body-inner">
+            <div class="ms-explain">The washer's job screen prompts them to take a photo of the car when they arrive — this is mandatory, they can't mark themselves as started without it. When they're done washing, they take another photo and submit it. Only then does the customer get asked to confirm. This system means both sides are protected.</div>
+            <div class="substeps-label">Steps to build</div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Before photo capture is mandatory to start the job</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">After photo required before marking job as done</span></div>
+            <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Photos uploaded to Firebase Storage automatically</span></div>
+            <div class="ms-tags"><span class="tag t-flutter">Flutter</span><span class="tag t-firebase">Firebase</span></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="divider"></div>
+<div class="div"></div>
 
-  <!-- ═══════════════════════════════════ PHASE 4 -->
-  <div class="phase">
-    <div class="phase-header">
-      <div class="phase-number">4</div>
-      <div class="phase-title">Mobile Car Wash — Customer + Provider</div>
-      <span class="phase-badge badge-upcoming">Upcoming</span>
+<!-- ══════════════════════════════ PHASE 5: INFRASTRUCTURE -->
+<div class="phase">
+  <div class="phase-hd">
+    <div class="phase-num">4</div>
+    <div class="phase-title">Core Infrastructure — Powers Everything</div>
+    <span class="phase-badge b-soon">Upcoming</span>
+  </div>
+  <p class="phase-desc">These are the behind-the-scenes systems that every service depends on. They must be built alongside Phase 1.</p>
+
+  <div class="ms" id="ms-i1">
+    <div class="ms-head" onclick="toggleMs('ms-i1')">
+      <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="ms-title">🔐 Login and accounts</div>
+      <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="service-section">
-      <div class="service-label">
-        <div class="service-label-dot" style="background:#F77622;"></div>
-        Customer Side
-      </div>
-
-      <div class="milestone" data-id="20" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Car type + package selector</div>
-          <div class="m-desc">Car size: hatchback / sedan / SUV / bakkie. Package: Exterior only / Full wash / Full + interior vac. Price auto-set. Location pin for where car is parked.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-ui">UI</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="21" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Booking + washer matching</div>
-          <div class="m-desc">Match nearby available washers. Show ETA, rating, price. Confirm with payment hold.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
-      </div>
-
-      <div class="milestone" data-id="22" onclick="toggle(this)">
-        <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="m-body">
-          <div class="m-title">Before + after photo confirmation</div>
-          <div class="m-desc">Provider takes before photo on arrival, after photo on completion. Customer sees both before approving payment release.</div>
-          <div class="m-tags"><span class="tag tag-flutter">Flutter</span><span class="tag tag-backend">Backend</span></div>
-        </div>
+    <div class="ms-body">
+      <div class="ms-body-inner">
+        <div class="ms-explain">Every person using the app needs their own account — whether they're a customer booking laundry or a provider doing the washing. You can sign up and log in with your South African phone number (we send a one-time code via SMS) or with your Google account. Customers and providers have separate sign-up flows because they need different information.</div>
+        <div class="substeps-label">Steps to build</div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Phone number OTP login via Firebase Auth (SMS code)</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Google sign-in option</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Separate onboarding flow for customer vs provider</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Profile screen showing booking history and settings</span></div>
+        <div class="ms-tags"><span class="tag t-firebase">Firebase Auth</span><span class="tag t-flutter">Flutter</span></div>
       </div>
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <!-- ═══════════════════════════════════ PHASE 5 -->
-  <div class="phase">
-    <div class="phase-header">
-      <div class="phase-number">5</div>
-      <div class="phase-title">Core Infrastructure (runs across all services)</div>
-      <span class="phase-badge badge-upcoming">Upcoming</span>
+  <div class="ms" id="ms-i2">
+    <div class="ms-head" onclick="toggleMs('ms-i2')">
+      <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="ms-title">📍 Live location tracking</div>
+      <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-
-    <div class="milestone" data-id="23" onclick="toggle(this)">
-      <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="m-body">
-        <div class="m-title">Authentication — OTP + Google sign-in</div>
-        <div class="m-desc">Phone OTP (primary, SA numbers), Google OAuth. Separate flows for customer vs provider. JWT tokens, Supabase Auth.</div>
-        <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
-      </div>
-    </div>
-
-    <div class="milestone" data-id="24" onclick="toggle(this)">
-      <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="m-body">
-        <div class="m-title">Real-time location tracking (provider movement)</div>
-        <div class="m-desc">Provider app broadcasts GPS every 5 seconds via Supabase Realtime. Customer map updates live. Stops broadcasting when job is Done.</div>
-        <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
-      </div>
-    </div>
-
-    <div class="milestone" data-id="25" onclick="toggle(this)">
-      <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="m-body">
-        <div class="m-title">Push notifications (FCM)</div>
-        <div class="m-desc">Customer: booking confirmed, provider on way, job done. Provider: new job request (with timer), job cancelled. Firebase Cloud Messaging.</div>
-        <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
-      </div>
-    </div>
-
-    <div class="milestone" data-id="26" onclick="toggle(this)">
-      <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="m-body">
-        <div class="m-title">Payment integration — Paystack</div>
-        <div class="m-desc">Card + instant EFT. Payment held on booking, released on job completion. Iskropo commission auto-deducted. Refund flow for cancellations.</div>
-        <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
-      </div>
-    </div>
-
-    <div class="milestone" data-id="27" onclick="toggle(this)">
-      <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="m-body">
-        <div class="m-title">In-app chat (customer ↔ provider)</div>
-        <div class="m-desc">Simple text chat per job, active from booking confirmed until job done. No chat history after job closes. Supabase Realtime messages.</div>
-        <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-flutter">Flutter</span></div>
-      </div>
-    </div>
-
-    <div class="milestone" data-id="28" onclick="toggle(this)">
-      <div class="checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="m-body">
-        <div class="m-title">Admin panel — basic</div>
-        <div class="m-desc">Web dashboard: view all users, pending provider verifications, active jobs, revenue summary. Approve/reject providers. Flag disputes.</div>
-        <div class="m-tags"><span class="tag tag-backend">Backend</span><span class="tag tag-ui">UI</span></div>
+    <div class="ms-body">
+      <div class="ms-body-inner">
+        <div class="ms-explain">When a provider is on their way to a customer, the customer sees a live dot on the map showing exactly where the provider is and moving in real time — just like Uber. The provider's phone sends their GPS location every few seconds while a job is active. As soon as the job is marked done, location sharing stops automatically to protect the provider's privacy.</div>
+        <div class="substeps-label">Steps to build</div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Provider app sends GPS location every 5 seconds during active job</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Customer map updates live via Firebase Realtime Database</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Location sharing stops automatically when job is Done</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Battery-efficient background GPS on provider's phone</span></div>
+        <div class="ms-tags"><span class="tag t-firebase">Firebase</span><span class="tag t-flutter">Flutter</span></div>
       </div>
     </div>
   </div>
 
-  <!-- NOTES -->
-  <div class="divider"></div>
-
-  <div class="notes-block">
-    <div class="notes-title">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Tech Stack Decision
+  <div class="ms" id="ms-i3">
+    <div class="ms-head" onclick="toggleMs('ms-i3')">
+      <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="ms-title">🔔 Push notifications</div>
+      <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <div class="notes-body">
-      <strong>Mobile:</strong> Flutter (single codebase for iOS + Android)<br/>
-      <strong>Backend:</strong> Node.js + Supabase (auth, DB, realtime, storage)<br/>
-      <strong>AI:</strong> Gemini API — intake parsing, smart matching, style descriptions<br/>
-      <strong>Payments:</strong> Paystack (SA-first, supports ZAR, instant EFT)<br/>
-      <strong>Maps:</strong> Google Maps SDK (Flutter)<br/>
-      <strong>Notifications:</strong> Firebase Cloud Messaging<br/>
-      <strong>Hosting:</strong> Supabase Edge Functions for serverless API
-    </div>
-  </div>
-
-  <div class="notes-block" style="background:rgba(56,139,253,0.07); border-color:rgba(56,139,253,0.15);">
-    <div class="notes-title" style="color:#6fa3ff;">
-      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Build Order
-    </div>
-    <div class="notes-body">
-      Start with <strong>Phase 1 + Phase 5 auth + Phase 5 payments in parallel</strong> — you cannot ship laundry without auth and payment.<br/><br/>
-      Phase 2 (provider side) must ship <strong>before</strong> any real users — providers need to be onboarded first.<br/><br/>
-      Phases 3 and 4 (barber, car wash) only start once laundry is live and generating real feedback.
+    <div class="ms-body">
+      <div class="ms-body-inner">
+        <div class="ms-explain">The app sends automatic alerts at key moments so nobody misses anything important. Customers get notified when their booking is confirmed, when their provider is on the way, and when the job is done. Providers get a loud sound alert the moment a new job is available near them — speed matters here because they only have 90 seconds to respond.</div>
+        <div class="substeps-label">Steps to build</div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Firebase Cloud Messaging set up for both iOS and Android</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Customer alerts: booking confirmed / provider on way / job done</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Provider alert: new job nearby (loud sound, immediate)</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Tapping a notification opens the relevant screen in the app</span></div>
+        <div class="ms-tags"><span class="tag t-firebase">Firebase FCM</span><span class="tag t-flutter">Flutter</span></div>
+      </div>
     </div>
   </div>
 
-  <p class="last-updated">Last updated: <span id="last-updated-date"></span> · Click any milestone to mark complete</p>
+  <div class="ms" id="ms-i4">
+    <div class="ms-head" onclick="toggleMs('ms-i4')">
+      <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="ms-title">💳 Payments via Paystack</div>
+      <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="ms-body">
+      <div class="ms-body-inner">
+        <div class="ms-explain">Customers pay by card or instant bank transfer (EFT). When they book, the money is held securely — think of it like Takealot holding your payment until the item arrives. The money is only sent to the provider once the job is confirmed done. Iskropo's cut is automatically taken before the provider receives anything. If a job is cancelled before it starts, the customer gets a full refund.</div>
+        <div class="substeps-label">Steps to build</div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Paystack SDK integrated into the Flutter app</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Card and instant EFT payment options available</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Payment held on booking, released on job completion</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Iskropo commission deducted automatically on the Fastify server</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Refund flow for cancellations before job starts</span></div>
+        <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-flutter">Flutter</span></div>
+      </div>
+    </div>
+  </div>
 
-</main>
+  <div class="ms" id="ms-i5">
+    <div class="ms-head" onclick="toggleMs('ms-i5')">
+      <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="ms-title">💬 In-app chat between customer and provider</div>
+      <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="ms-body">
+      <div class="ms-body-inner">
+        <div class="ms-explain">Once a job is booked, the customer and provider can message each other directly inside the app — no need to share personal phone numbers. This is useful for practical things: "I'm outside the gate," "please use the back entrance," or "can you add fabric softener." The chat is only active while a job is in progress. After the job is done, the chat closes.</div>
+        <div class="substeps-label">Steps to build</div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Chat screen accessible from the active job tracking screen</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Real-time messages via Firebase Realtime Database</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Chat locked automatically after job is marked Done</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Report message button for basic moderation</span></div>
+        <div class="ms-tags"><span class="tag t-firebase">Firebase</span><span class="tag t-flutter">Flutter</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ms" id="ms-i6">
+    <div class="ms-head" onclick="toggleMs('ms-i6')">
+      <div class="ms-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="ms-title">🖥️ Admin dashboard for Iskropo team</div>
+      <svg class="ms-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="ms-body">
+      <div class="ms-body-inner">
+        <div class="ms-explain">Behind the scenes, the Iskropo team has a private web page (not part of the mobile app) where they can manage everything. They can see all users and providers, approve new providers who've submitted their ID, watch all active bookings happening right now, see how much money has moved through the platform, and step in to resolve any disputes between a customer and a provider.</div>
+        <div class="substeps-label">Steps to build</div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">User list: view all customers and providers</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Provider verification queue: approve or reject with reason</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Active and past bookings overview</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Revenue and commission summary dashboard</span></div>
+        <div class="substep" onclick="toggleSub(this)"><div class="sub-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sub-txt">Dispute management: view, comment, and resolve complaints</span></div>
+        <div class="ms-tags"><span class="tag t-backend">Fastify</span><span class="tag t-firebase">Firebase</span><span class="tag t-ui">Web UI</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- TECH STACK -->
+<div class="note note-blue">
+  <div class="note-title">⚙️ Tech Stack — What Powers Iskropo</div>
+  <div class="stack-grid">
+    <div class="stack-item">
+      <div class="stack-emoji">📱</div>
+      <div class="stack-name">Flutter</div>
+      <div class="stack-desc">One codebase that builds both the iPhone and Android apps simultaneously. Faster to build, easier to maintain.</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-emoji">🔥</div>
+      <div class="stack-name">Firebase</div>
+      <div class="stack-desc">Google's platform that handles user accounts, stores all data, enables live location tracking, and sends push notifications.</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-emoji">⚡</div>
+      <div class="stack-name">Fastify Server</div>
+      <div class="stack-desc">The brain behind the scenes. Handles bookings, payment logic, provider matching, and AI requests. Built for speed.</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-emoji">🧠</div>
+      <div class="stack-name">Gemini AI</div>
+      <div class="stack-desc">Google's AI that understands what customers are asking for, generates plain-English summaries, and powers smart suggestions.</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-emoji">💳</div>
+      <div class="stack-name">Paystack</div>
+      <div class="stack-desc">South African payment gateway. Accepts cards and instant EFT. Holds money until jobs are completed, then pays providers.</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-emoji">🗺️</div>
+      <div class="stack-name">Google Maps</div>
+      <div class="stack-desc">Shows live provider locations on the map, calculates distances, and lets customers and providers see each other's position.</div>
+    </div>
+  </div>
+</div>
+
+<p class="footer">Last updated: <span id="last-date"></span> &nbsp;·&nbsp; Click any milestone or sub-step to mark complete &nbsp;·&nbsp; Progress saves automatically</p>
 
 <script>
-// ── State persistence ─────────────────────────────────
-const STORAGE_KEY = 'iskropo_plan_v1';
+const KEY = 'iskropo_plan_v2';
 
-function loadState() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-  catch(e) { return {}; }
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { return {}; }
+}
+function save(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
+
+// Toggle milestone (main header)
+function toggleMs(id) {
+  const el = document.getElementById(id);
+  const body = el.querySelector('.ms-body');
+  const isOpen = el.classList.contains('open');
+  if (isOpen) {
+    el.classList.remove('open');
+    body.style.maxHeight = '0';
+  } else {
+    el.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
 }
 
-function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-// ── Toggle milestone ──────────────────────────────────
-function toggle(el) {
-  const id = el.dataset.id;
-  const state = loadState();
-  const isDone = el.classList.toggle('done');
-  state[id] = isDone;
-  saveState(state);
+// Toggle substep checkbox
+function toggleSub(el) {
+  el.classList.toggle('done');
+  // recalc parent milestone
+  const ms = el.closest('.ms');
+  const subs = ms.querySelectorAll('.substep');
+  const dones = ms.querySelectorAll('.substep.done');
+  if (dones.length === subs.length && subs.length > 0) {
+    ms.classList.add('done');
+  } else {
+    ms.classList.remove('done');
+  }
+  // after height change, update body maxHeight if open
+  if (ms.classList.contains('open')) {
+    const body = ms.querySelector('.ms-body');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
+  persistState();
   updateProgress();
 }
 
-// ── Restore state on load ─────────────────────────────
+function persistState() {
+  const state = {};
+  document.querySelectorAll('.substep').forEach((s, i) => {
+    state['sub_' + i] = s.classList.contains('done');
+  });
+  save(state);
+}
+
 function restoreState() {
-  const state = loadState();
-  document.querySelectorAll('.milestone').forEach(el => {
-    if (state[el.dataset.id]) el.classList.add('done');
+  const state = load();
+  document.querySelectorAll('.substep').forEach((s, i) => {
+    if (state['sub_' + i]) {
+      s.classList.add('done');
+      const ms = s.closest('.ms');
+      const subs = ms.querySelectorAll('.substep');
+      const dones = ms.querySelectorAll('.substep.done');
+      if (dones.length === subs.length) ms.classList.add('done');
+    }
   });
 }
 
-// ── Progress bar ──────────────────────────────────────
 function updateProgress() {
-  const all  = document.querySelectorAll('.milestone').length;
-  const done = document.querySelectorAll('.milestone.done').length;
-  const pct  = all > 0 ? Math.round((done / all) * 100) : 0;
+  const total = document.querySelectorAll('.substep').length;
+  const done  = document.querySelectorAll('.substep.done').length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-count').textContent = done + ' / ' + all + ' done';
+  document.getElementById('prog-count').textContent = done + ' / ' + total + ' done';
 }
 
-// ── Date ──────────────────────────────────────────────
-const now = new Date();
-document.getElementById('last-updated-date').textContent =
-  now.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+// Date
+const d = new Date();
+document.getElementById('last-date').textContent =
+  d.toLocaleDateString('en-ZA', {day:'numeric', month:'long', year:'numeric'});
 
-// ── Boot ─────────────────────────────────────────────
 restoreState();
 updateProgress();
 </script>
